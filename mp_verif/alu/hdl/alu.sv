@@ -8,19 +8,19 @@ module alu
     output  logic           valid_o
 );
 
-            logic   [2:0]   aluop_reg;
-            logic   [31:0]  a_reg, b_reg;
-            logic           valid_int;
+    logic   [2:0]   aluop_reg;
+    logic   [31:0]  a_reg, b_reg;
+    logic           valid_int;
 
-            logic   [31:0]  f_and;
-            logic   [31:0]  f_or;
-            logic   [31:0]  f_not;
-            logic   [31:0]  f_add;
-            logic   [31:0]  f_sub;
-            logic   [31:0]  f_shl;
-            logic   [31:0]  f_shr;
+    logic   [31:0]  f_and;
+    logic   [31:0]  f_or;
+    logic   [31:0]  f_not;
+    logic   [31:0]  f_add;
+    logic   [31:0]  f_sub;
+    logic   [31:0]  f_shl;
+    logic   [31:0]  f_shr;
 
-            logic   [31:0]  f_next;
+    logic   [31:0]  f_next;
 
     always_ff @(posedge clk) begin
         aluop_reg <= aluop;
@@ -32,7 +32,7 @@ module alu
     always_comb begin
         f_and = a_reg & b_reg;
         f_or  = a_reg | b_reg;
-        f_not = !a_reg;
+        f_not = ~a_reg;
         f_add = a_reg + b_reg;
         f_sub = a_reg - b_reg;
         f_shl = a_reg << b_reg[4:0];
@@ -48,6 +48,7 @@ module alu
             3'd4 : f_next = f_sub;
             3'd5 : f_next = f_shl;
             3'd6 : f_next = f_shr;
+            default: f_next = 0;
         endcase
     end
 
