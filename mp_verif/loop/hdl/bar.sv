@@ -6,8 +6,8 @@ module bar(
     input   logic           ack
 );
 
-            logic   [3:0]   internal_counter;
-            logic   [3:0]   internal_counter_next;
+    logic   [3:0]   internal_counter;
+    logic   [3:0]   internal_counter_next;
 
     always_ff @(posedge clk) begin
         if (rst) begin
@@ -15,6 +15,9 @@ module bar(
         end else begin
             internal_counter <= internal_counter_next;
         end
+        
+        req <= 1'b1;
+        req_key <= internal_counter_next;
     end
 
     always_comb begin
@@ -25,7 +28,7 @@ module bar(
         end
     end
 
-    assign req = 1'b1;
-    assign req_key = internal_counter_next;
+    // assign req = 1'b1;
+    // assign req_key = internal_counter_next;
 
 endmodule
