@@ -5,12 +5,14 @@ class RandInst;
     // You will increment this number as you generate more random instruction
     // types. Once finished, NUM_TYPES should be 9, for each opcode type in
     // rv32i_opcode.
-    localparam NUM_TYPES = 3;
+    localparam NUM_TYPES = 9;
 
     // Note that the `instr_t` type is from ../pkg/types.sv, there are TODOs
     // you must complete there to fully define `instr_t`.
     rand instr_t instr;
     rand bit [NUM_TYPES-1:0] instr_type;
+    rand logic [6:0] temp_funct7;
+    rand logic [2:0] temp_funct3;
 
     // Make sure we have an even distribution of instruction types.
     constraint solve_order_c { solve instr_type before instr; }
@@ -18,6 +20,12 @@ class RandInst;
     // Hint/TODO: you will need another solve_order constraint for funct3
     // to get 100% coverage with 500 calls to .randomize().
     // constraint solve_order_funct3_c { ... }
+    constraint solve_order_funct3_c { solve temp_funct3 before temp_funct7; }
+
+    constraint apply_temp_funct_c {
+        instr.r_type.funct7 == temp_funct7;
+        instr.r_type.funct3 == temp_funct3;
+    }
 
     // Pick one of the instruction types.
     constraint instr_type_c {
