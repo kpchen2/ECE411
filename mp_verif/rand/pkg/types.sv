@@ -90,6 +90,14 @@ package rv32i_types;
          // Fill this out to get branches running!
         } b_type;
         */
+        struct packed {
+            logic [31:25]   imm_b_top;
+            logic [4:0]     rs2;
+            logic [4:0]     rs1;
+            logic [2:0]     funct3;
+            logic [11:7]    imm_b_bot;
+            rv32i_opcode    opcode;
+        } b_type;
 
         struct packed {
             logic [31:12] imm;
