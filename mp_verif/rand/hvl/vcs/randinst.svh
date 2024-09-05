@@ -15,11 +15,12 @@ class RandInst;
     rand logic [2:0] temp_funct3;
 
     // Make sure we have an even distribution of instruction types.
-    constraint solve_order_c { solve instr_type before instr; }
+    // constraint solve_order_c { solve instr_type before instr; }
 
     // Hint/TODO: you will need another solve_order constraint for funct3
     // to get 100% coverage with 500 calls to .randomize().
     // constraint solve_order_funct3_c { ... }
+    constraint solve_order_c { solve instr_type before temp_funct3; }
     constraint solve_order_funct3_c { solve temp_funct3 before temp_funct7; }
 
     constraint apply_temp_funct_c {
@@ -91,26 +92,20 @@ class RandInst;
         // TODO: Do all 9 types!
         instr_type[4] -> {
             instr.j_type.opcode == op_b_lui;
-
-            // no constraints??
         }
 
         instr_type[5] -> {
             instr.j_type.opcode == op_b_auipc;
-
-            // no constraints??
         }
 
         instr_type[6] -> {
             instr.j_type.opcode == op_b_jal;
-
-            // no constraints??
         }
 
         instr_type[7] -> {
             instr.i_type.opcode == op_b_jalr;
 
-            instr.i_type.funct3 == 3'b000;
+            instr.i_type.funct3 == branch_f3_beq;
         }
 
         instr_type[8] -> {

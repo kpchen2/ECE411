@@ -46,7 +46,7 @@ covergroup instr_cg with function sample(instr_t instr);
 
         // TODO: You'll also have to ignore some funct3 cases in JALR, LOAD, and
         // STORE. Write the illegal_bins/ignore_bins for those cases.
-        illegal_bins JALR_FUNCT3 = funct3_cross with (instr.i_type.opcode == op_b_jalr && !(instr.i_type.funct3 inside {branch_f3_beq}));
+        illegal_bins JALR_FUNCT3 = funct3_cross with (instr.i_type.opcode == op_b_jalr && instr.i_type.funct3 != branch_f3_beq);
         ignore_bins LOAD_FUNCT3 = funct3_cross with (instr.i_type.opcode == op_b_load && !(instr.i_type.funct3 inside {load_f3_lb, load_f3_lh, load_f3_lw, load_f3_lbu, load_f3_lhu}));
         ignore_bins STORE_FUNCT3 = funct3_cross with (instr.i_type.opcode == op_b_store && !(instr.i_type.funct3 inside {store_f3_sb, store_f3_sh, store_f3_sw}));
     }
@@ -67,9 +67,10 @@ covergroup instr_cg with function sample(instr_t instr);
         // TODO: Get rid of all the other cases where funct7 isn't necessary, or cannot
         // take on certain values.
         ignore_bins IMM_FUNCT7 = funct7_cross with 
-        (instr.r_type.opcode == op_b_imm && !((instr.r_type.funct3 == arith_f3_sll && instr.r_type.funct7 inside {base}) || (instr.r_type.funct3 == arith_f3_sr && instr.r_type.funct7 inside {base, variant})));
+        (instr.r_type.opcode == op_b_imm && !((instr.r_type.funct3 == arith_f3_sll && instr.r_type.funct7 == base) || (instr.r_type.funct3 == arith_f3_sr && instr.r_type.funct7 inside {base, variant})));
+        
         ignore_bins REG_FUNCT7 = funct7_cross with 
-        (instr.r_type.opcode == op_b_reg && !((instr.r_type.funct7 inside {base} && instr.r_type.funct3 inside {arith_f3_sll, arith_f3_slt, arith_f3_sltu, arith_f3_xor, arith_f3_or, arith_f3_and}) || (instr.r_type.funct7 inside {base, variant} && instr.r_type.funct3 inside {arith_f3_add, arith_f3_sr})));
+        (instr.r_type.opcode == op_b_reg && !(instr.r_type.funct7 == base || (instr.r_type.funct7 == variant && instr.r_type.funct3 inside {arith_f3_add, arith_f3_sr})));
     }
 
 endgroup : instr_cg
