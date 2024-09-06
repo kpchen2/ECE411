@@ -94,11 +94,11 @@ import rv32i_types::*;
     always_comb begin
         unique case (aluop)
             alu_op_add: aluout = au +   bu;
-            alu_op_sll: aluout = au <<  bu[3:0];
-            alu_op_sra: aluout = unsigned'(as >>> bu[3:0]);
+            alu_op_sll: aluout = au <<  bu[4:0];
+            alu_op_sra: aluout = unsigned'(as >>> bu[4:0]);
             alu_op_sub: aluout = au -   bu;
             alu_op_xor: aluout = au ^   bu;
-            alu_op_srl: aluout = au >>  bu[3:0];
+            alu_op_srl: aluout = au >>  bu[4:0];
             alu_op_or : aluout = au |   bu;
             alu_op_and: aluout = au &   bu;
             default   : aluout = 'x;
@@ -110,9 +110,9 @@ import rv32i_types::*;
             branch_f3_beq : br_en = (au == bu);
             branch_f3_bne : br_en = (au != bu);
             branch_f3_blt : br_en = (as <  bs);
-            branch_f3_bge : br_en = (as >  bs);
+            branch_f3_bge : br_en = (as >=  bs);
             branch_f3_bltu: br_en = (au <  bu);
-            branch_f3_bgeu: br_en = (au >  bu);
+            branch_f3_bgeu: br_en = (au >=  bu);
             default       : br_en = 1'bx;
         endcase
     end
@@ -141,7 +141,7 @@ import rv32i_types::*;
         pc_next    = pc;
         mem_addr   = 'x;
         mem_rmask  = '0;
-        mem_wmask  = '1;
+        mem_wmask  = '0;
         mem_wdata  = 'x;
         rd_v       = 'x;
         load_ir    = 1'b0;
@@ -221,7 +221,7 @@ import rv32i_types::*;
                 state_next = s_fetch;
             end
             s_load: begin
-                mem_addr = i_imm;
+                mem_addr = rs1_v + i_imm;
                 unique case (funct3)
                     load_f3_lb, load_f3_lbu: mem_rmask = 4'b0001 << mem_addr[1:0];
                     load_f3_lh, load_f3_lhu: mem_rmask = 4'b0011 << mem_addr[1:0];
