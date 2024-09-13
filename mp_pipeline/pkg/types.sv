@@ -22,7 +22,7 @@ package rv32i_types;
 
         // what else?
 
-    } if_id_stage_reg_t;
+    } if_id_reg_t;
 
     typedef struct packed {
         logic   [31:0]      inst;
@@ -34,7 +34,19 @@ package rv32i_types;
         // what else?
         cmp_m1_set_t        cmp_m1_set;
 
-    } id_ex_stage_reg_t;
+        logic   [2:0]       funct3;
+        logic   [6:0]       funct7;
+        logic   [6:0]       opcode;
+        logic   [31:0]      i_imm;
+        logic   [31:0]      s_imm;
+        logic   [31:0]      b_imm;
+        logic   [31:0]      u_imm;
+        logic   [31:0]      j_imm;
+        logic   [4:0]       rs1_s;
+        logic   [4:0]       rs2_s;
+        logic   [4:0]       rd_s;
+
+    } id_ex_reg_t;
 
     typedef struct packed {
         logic   [31:0]      inst;
@@ -43,7 +55,7 @@ package rv32i_types;
 
         // what else?
 
-    } ex_mem_stage_reg_t;
+    } ex_mem_reg_t;
 
     typedef struct packed {
         logic   [31:0]      inst;
@@ -51,8 +63,9 @@ package rv32i_types;
         logic   [63:0]      order;
 
         // what else?
-
-    } mem_wb_stage_reg_t;
+        logic               regf_we;
+        logic   [31:0]      rd_v;
+    } mem_wb_reg_t;
 
 
     /* --- vp_verif/pkg/types.sv section underneath --- */
