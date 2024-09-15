@@ -1,6 +1,5 @@
-import rv32i_types::*;
-
 module if_stage
+import rv32i_types::*;
 (
     input   logic           clk,
     input   logic           rst,

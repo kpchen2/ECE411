@@ -46,6 +46,7 @@ package rv32i_types;
         logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
 
+        cmp_m1_set_t        cmp_m1_set;
     } id_ex_reg_t;
 
     typedef struct packed {
@@ -54,6 +55,10 @@ package rv32i_types;
         logic   [63:0]      order;
 
         // what else?
+        logic   [31:0]      rd_v;
+        logic   [4:0]       rd_s;
+        logic               regf_we;
+        logic               commit;
 
     } ex_mem_reg_t;
 
@@ -63,8 +68,11 @@ package rv32i_types;
         logic   [63:0]      order;
 
         // what else?
-        logic               regf_we;
         logic   [31:0]      rd_v;
+        logic   [4:0]       rd_s;
+        logic               regf_we;
+        logic               commit;
+
     } mem_wb_reg_t;
 
 

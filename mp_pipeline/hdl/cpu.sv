@@ -17,9 +17,9 @@ import rv32i_types::*;
     input   logic           dmem_resp
 );
 
-    logic       monitor_valid, monitor_order, monitor_inst, monitor_rs1_addr, monitor_rs2_addr, monitor_rs1_rdata, monitor_rs2_rdata;
-    logic       monitor_rd_addr, monitor_rd_wdata, monitor_pc_rdata, monitor_pc_wdata, monitor_mem_addr, monitor_mem_rmask, monitor_mem_wmask;
-    logic       monitor_mem_rdata, monitor_mem_wdata;
+    logic  monitor_valid, monitor_order, monitor_inst, monitor_rs1_addr, monitor_rs2_addr, monitor_rs1_rdata, monitor_rs2_rdata;
+    logic  monitor_rd_addr, monitor_rd_wdata, monitor_pc_rdata, monitor_pc_wdata, monitor_mem_addr, monitor_mem_rmask, monitor_mem_wmask;
+    logic  monitor_mem_rdata, monitor_mem_wdata;
 
     assign monitor_valid = 1'b0;
     assign monitor_order = 'x;
@@ -44,15 +44,6 @@ import rv32i_types::*;
     logic   [31:0]  pc;
     logic   [31:0]  pc_next;
 
-    logic   [31:0]  a;
-    logic   [31:0]  b;
-
-    logic   [2:0]   aluop;
-    logic   [2:0]   cmpop;
-
-    logic   [31:0]  aluout;
-    logic           br_en;
-
     logic   [31:0]  rs1_v;
     logic   [31:0]  rs2_v;
 
@@ -71,8 +62,8 @@ import rv32i_types::*;
     end
 
     always_ff @(posedge clk) begin
-        if_id_reg <= if_id_reg_next;
-        id_ex_reg <= id_ex_reg_next;
+        if_id_reg  <= if_id_reg_next;
+        id_ex_reg  <= id_ex_reg_next;
         ex_mem_reg <= ex_mem_reg_next;
         mem_wb_reg <= mem_wb_reg_next;
     end
@@ -108,13 +99,35 @@ import rv32i_types::*;
         .rd_v(mem_wb_reg_next.rd_v),
         .rs1_s(id_ex_reg_next.rs1_s),
         .rs2_s(id_ex_reg_next.rs2_s),
-        .rd_s(id_ex_reg_next.rd_s),
+        .rd_s(mem_wb_reg_next.rd_s),
         .rs1_v(rs1_v),
         .rs2_v(rs2_v)
     );
 
-    // ex_stage ex_stage_i (
+    ex_stage ex_stage_i (
+        .clk(clk),
+        .rst(rst),
 
-    // );
+        .id_ex_reg(id_ex_reg),
+        .ex_mem_reg(ex_mem_reg_next),
+
+        .rs1_v(rs1_v),
+        .rs2_v(rs2_v)
+    );
+
+    mem_stage mem_stage_i (
+        .clk(clk),
+        .rst(rst),
+
+        .ex_mem_reg(ex_mem_reg),
+        .mem_wb_reg(mem_wb_reg_next)
+    );
+
+    wb_stage wb_stage_i (
+        .clk(clk),
+        .rst(rst),
+
+        .mem_wb_reg(mem_wb_reg)
+    );
 
 endmodule : cpu
