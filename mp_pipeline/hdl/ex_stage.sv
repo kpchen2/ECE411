@@ -58,7 +58,13 @@ import rv32i_types::*;
         ex_mem_reg.pc    = id_ex_reg.pc;
         ex_mem_reg.inst  = id_ex_reg.inst;
         ex_mem_reg.rd_s  = id_ex_reg.rd_s;
-        ex_mem_reg.order = id_ex_reg.order;
+        // ex_mem_reg.order = id_ex_reg.order;
+
+        ex_mem_reg.imem_addr  = id_ex_reg.imem_addr;
+        ex_mem_reg.rs1_s      = id_ex_reg.rs1_s;
+        ex_mem_reg.rs2_s      = id_ex_reg.rs2_s;
+        ex_mem_reg.rs1_v      = rs1_v;
+        ex_mem_reg.rs2_v      = rs2_v;
     end
 
     always_comb begin
@@ -256,6 +262,10 @@ import rv32i_types::*;
                 // state_next = s_halt;
             end
         endcase
+
+        if (rst == 1) begin
+            ex_mem_reg.commit = 1'b0;
+        end
     end
 
 endmodule : ex_stage

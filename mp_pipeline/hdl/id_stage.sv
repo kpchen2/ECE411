@@ -29,7 +29,9 @@ import rv32i_types::*;
 
         id_ex_reg.inst   = inst;
         id_ex_reg.pc     = if_id_reg.pc;
-        id_ex_reg.order  = if_id_reg.order;
+        // id_ex_reg.order  = if_id_reg.order;
+
+        id_ex_reg.imem_addr  = if_id_reg.imem_addr;
     end
 
 endmodule : id_stage

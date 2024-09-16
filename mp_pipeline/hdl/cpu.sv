@@ -17,30 +17,11 @@ import rv32i_types::*;
     input   logic           dmem_resp
 );
 
-    logic  monitor_valid, monitor_order, monitor_inst, monitor_rs1_addr, monitor_rs2_addr, monitor_rs1_rdata, monitor_rs2_rdata;
-    logic  monitor_rd_addr, monitor_rd_wdata, monitor_pc_rdata, monitor_pc_wdata, monitor_mem_addr, monitor_mem_rmask, monitor_mem_wmask;
-    logic  monitor_mem_rdata, monitor_mem_wdata;
-
-    assign monitor_valid = 1'b0;
-    assign monitor_order = 'x;
-    assign monitor_inst = 'x;
-    assign monitor_rs1_addr = 'x;
-    assign monitor_rs2_addr = 'x;
-    assign monitor_rs1_rdata = 'x;
-    assign monitor_rs2_rdata = 'x;
-    assign monitor_rd_addr = 'x;
-    assign monitor_rd_wdata = 'x;
-    assign monitor_pc_rdata = 'x;
-    assign monitor_pc_wdata = 'x;
-    assign monitor_mem_addr = 'x;
-    assign monitor_mem_rmask = 'x;
-    assign monitor_mem_wmask = 'x;
-    assign monitor_mem_rdata = 'x;
-    assign monitor_mem_wdata = 'x;
+    logic           commit;
 
     logic   [63:0]  order;
+    logic   [63:0]  order_next;
 
-    logic           commit;
     logic   [31:0]  pc;
     logic   [31:0]  pc_next;
 
@@ -57,9 +38,15 @@ import rv32i_types::*;
         if (rst) begin
             pc <= 32'h1eceb000;
             order <= 64'b0;
+            // order_next <= '0;
+
+            dmem_addr <= '0;
+            dmem_rmask <= '0;
+            dmem_wmask <= '0;
+            dmem_wdata <= '0;
         end else begin
             pc <= pc_next;
-            order <= order + 64'b1;
+            order <= order_next;
         end
     end
 
@@ -76,7 +63,7 @@ import rv32i_types::*;
 
         .pc(pc),
         .pc_next(pc_next),
-        .order(order),
+        // .order(order),
         .if_id_reg(if_id_reg_next),
 
         .imem_addr(imem_addr),
@@ -123,7 +110,10 @@ import rv32i_types::*;
         .rst(rst),
 
         .ex_mem_reg(ex_mem_reg),
-        .mem_wb_reg(mem_wb_reg_next)
+        .mem_wb_reg(mem_wb_reg_next),
+
+        .order(order),
+        .order_next(order_next)
     );
 
     wb_stage wb_stage_i (

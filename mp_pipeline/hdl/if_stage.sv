@@ -17,8 +17,9 @@ import rv32i_types::*;
         if (rst == 0) begin
             imem_rmask = 4'b1111;
             imem_addr = pc;
+            if_id_reg.imem_addr = imem_addr;
 
-            if_id_reg.order = order;
+            // if_id_reg.order = order;
             if_id_reg.pc = pc;
             pc_next = pc + 4;
         end

@@ -10,28 +10,25 @@ package rv32i_types;
     } alu_m1_sel_t;
 
     // more mux def here
-    typedef enum logic {
-        cmp_in1 = 1'b0,
-        cmp_in2 = 1'b1
-    } cmp_m1_set_t;
 
     typedef struct packed {
         logic   [31:0]      pc;
-        logic   [63:0]      order;
+        // logic   [63:0]      order;
 
         // what else?
-
+        logic   [31:0]      imem_addr;
     } if_id_reg_t;
 
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
-        logic   [63:0]      order;
+        // logic   [63:0]      order;
+        logic               valid;
 
-        alu_m1_sel_t        alu_m1_sel;
+        // alu_m1_sel_t        alu_m1_sel;
 
         // what else?
-        cmp_m1_set_t        cmp_m1_set;
+        logic   [31:0]      imem_addr;
 
         logic   [2:0]       funct3;
         logic   [6:0]       funct7;
@@ -44,16 +41,21 @@ package rv32i_types;
         logic   [4:0]       rs1_s;
         logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
-
-        cmp_m1_set_t        cmp_m1_set;
     } id_ex_reg_t;
 
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
-        logic   [63:0]      order;
+        // logic   [63:0]      order;
 
         // what else?
+        logic   [31:0]      imem_addr;
+
+        logic   [4:0]       rs1_s;
+        logic   [4:0]       rs2_s;
+        logic   [31:0]      rs1_v;
+        logic   [31:0]      rs2_v;
+
         logic   [31:0]      rd_v;
         logic   [4:0]       rd_s;
         logic               regf_we;
@@ -67,6 +69,13 @@ package rv32i_types;
         logic   [63:0]      order;
 
         // what else?
+        logic   [31:0]      imem_addr;
+
+        logic   [4:0]       rs1_s;
+        logic   [4:0]       rs2_s;
+        logic   [31:0]      rs1_v;
+        logic   [31:0]      rs2_v;
+
         logic   [31:0]      rd_v;
         logic   [4:0]       rd_s;
         logic               regf_we;
