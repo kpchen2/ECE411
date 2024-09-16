@@ -55,7 +55,10 @@ import rv32i_types::*;
     end
 
     always_comb begin
-        ex_mem_reg.rd_s = id_ex_reg.rd_s;
+        ex_mem_reg.pc    = id_ex_reg.pc;
+        ex_mem_reg.inst  = id_ex_reg.inst;
+        ex_mem_reg.rd_s  = id_ex_reg.rd_s;
+        ex_mem_reg.order = id_ex_reg.order;
     end
 
     always_comb begin

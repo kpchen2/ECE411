@@ -56,8 +56,10 @@ import rv32i_types::*;
     always_ff @(posedge clk) begin
         if (rst) begin
             pc <= 32'h1eceb000;
+            order <= 64'b0;
         end else begin
             pc <= pc_next;
+            order <= order + 64'b1;
         end
     end
 
@@ -74,6 +76,7 @@ import rv32i_types::*;
 
         .pc(pc),
         .pc_next(pc_next),
+        .order(order),
         .if_id_reg(if_id_reg_next),
 
         .imem_addr(imem_addr),
@@ -95,11 +98,11 @@ import rv32i_types::*;
         .clk(clk),
         .rst(rst),
 
-        .regf_we(mem_wb_reg_next.regf_we),
-        .rd_v(mem_wb_reg_next.rd_v),
+        .regf_we(mem_wb_reg.regf_we),
+        .rd_v(mem_wb_reg.rd_v),
         .rs1_s(id_ex_reg_next.rs1_s),
         .rs2_s(id_ex_reg_next.rs2_s),
-        .rd_s(mem_wb_reg_next.rd_s),
+        .rd_s(mem_wb_reg.rd_s),
         .rs1_v(rs1_v),
         .rs2_v(rs2_v)
     );

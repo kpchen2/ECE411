@@ -16,7 +16,6 @@ package rv32i_types;
     } cmp_m1_set_t;
 
     typedef struct packed {
-        logic   [31:0]      inst;
         logic   [31:0]      pc;
         logic   [63:0]      order;
 

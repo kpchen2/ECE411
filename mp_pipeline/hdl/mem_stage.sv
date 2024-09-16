@@ -9,6 +9,9 @@ import rv32i_types::*;
 );
 
     always_comb begin
+        mem_wb_reg.pc      = ex_mem_reg.pc;
+        mem_wb_reg.inst    = ex_mem_reg.inst;
+
         mem_wb_reg.rd_v    = ex_mem_reg.rd_v;
         mem_wb_reg.rd_s    = ex_mem_reg.rd_s;
         mem_wb_reg.regf_we = ex_mem_reg.regf_we;
