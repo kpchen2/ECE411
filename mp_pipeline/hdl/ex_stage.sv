@@ -61,8 +61,8 @@ import rv32i_types::*;
         ex_mem_reg.rd_s    = id_ex_reg.rd_s;
 
         ex_mem_reg.imem_addr  = id_ex_reg.imem_addr;
-        ex_mem_reg.rs1_s      = id_ex_reg.rs1_s;
-        ex_mem_reg.rs2_s      = id_ex_reg.rs2_s;
+        // ex_mem_reg.rs1_s      = id_ex_reg.rs1_s;
+        // ex_mem_reg.rs2_s      = id_ex_reg.rs2_s;
         ex_mem_reg.rs1_v      = rs1_v;
         ex_mem_reg.rs2_v      = rs2_v;
     end
@@ -86,6 +86,10 @@ import rv32i_types::*;
         b          = 'x;
         aluop      = 'x;
         cmpop      = 'x;
+
+        ex_mem_reg.rs1_s = id_ex_reg.rs1_s;
+        ex_mem_reg.rs2_s = id_ex_reg.rs2_s;
+
         unique case (id_ex_reg.opcode)
             // s_halt: begin
             //     pc_next = pc;
@@ -122,6 +126,9 @@ import rv32i_types::*;
                 // pc_next = pc + 'd4;
                 ex_mem_reg.commit = 1'b1;
                 // state_next = s_fetch;
+
+                ex_mem_reg.rs1_s = '0;
+                ex_mem_reg.rs2_s = '0;
             end
             op_b_auipc: begin
                 ex_mem_reg.rd_v = id_ex_reg.pc + id_ex_reg.u_imm;
@@ -129,6 +136,9 @@ import rv32i_types::*;
                 // pc_next = pc + 'd4;
                 ex_mem_reg.commit = 1'b1;
                 // state_next = s_fetch;
+
+                ex_mem_reg.rs1_s = '0;
+                ex_mem_reg.rs2_s = '0;
             end
             // s_jal: begin
             //     rd_v = pc + 'd4;
@@ -223,6 +233,8 @@ import rv32i_types::*;
                 // pc_next = pc + 'd4;
                 ex_mem_reg.commit = 1'b1;
                 // state_next = s_fetch;
+
+                ex_mem_reg.rs2_s = '0;
             end
             op_b_reg: begin
                 a = rs1_v;
