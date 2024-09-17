@@ -17,16 +17,22 @@ import rv32i_types::*;
     input   logic           dmem_resp
 );
 
-    logic           commit;
-
     logic   [63:0]  order;
-    logic   [63:0]  order_next;
 
     logic   [31:0]  pc;
     logic   [31:0]  pc_next;
 
     logic   [31:0]  rs1_v;
     logic   [31:0]  rs2_v;
+
+    logic           increment;
+
+    // dummy variables to kill warnings (cp1)
+    logic   [31:0]  d_rdata;
+    logic           d_resp;
+
+    // dummy variables to kill warnings (cp1)
+    logic           wb_worked;
 
     /* --- new register variables --- */
     if_id_reg_t     if_id_reg,  if_id_reg_next;
@@ -38,15 +44,17 @@ import rv32i_types::*;
         if (rst) begin
             pc <= 32'h1eceb000;
             order <= 64'b0;
-            // order_next <= '0;
 
+            // hardcoded values for cp1
             dmem_addr <= '0;
             dmem_rmask <= '0;
             dmem_wmask <= '0;
             dmem_wdata <= '0;
+            d_rdata <= dmem_rdata;
+            d_resp <= dmem_resp;
         end else begin
             pc <= pc_next;
-            order <= order_next;
+            order <= increment ? order + 64'b1 : order;
         end
     end
 
@@ -58,12 +66,11 @@ import rv32i_types::*;
     end
 
     if_stage if_stage_i (
-        .clk(clk),
+        // .clk(clk),
         .rst(rst),
 
         .pc(pc),
         .pc_next(pc_next),
-        // .order(order),
         .if_id_reg(if_id_reg_next),
 
         .imem_addr(imem_addr),
@@ -71,8 +78,8 @@ import rv32i_types::*;
     );
 
     id_stage id_stage_i (
-        .clk(clk),
-        .rst(rst),
+        // .clk(clk),
+        // .rst(rst),
 
         .if_id_reg(if_id_reg),
         .id_ex_reg(id_ex_reg_next),
@@ -95,7 +102,7 @@ import rv32i_types::*;
     );
 
     ex_stage ex_stage_i (
-        .clk(clk),
+        // .clk(clk),
         .rst(rst),
 
         .id_ex_reg(id_ex_reg),
@@ -106,21 +113,22 @@ import rv32i_types::*;
     );
 
     mem_stage mem_stage_i (
-        .clk(clk),
-        .rst(rst),
+        // .clk(clk),
+        // .rst(rst),
 
         .ex_mem_reg(ex_mem_reg),
         .mem_wb_reg(mem_wb_reg_next),
 
         .order(order),
-        .order_next(order_next)
+        .increment(increment)
     );
 
     wb_stage wb_stage_i (
-        .clk(clk),
-        .rst(rst),
+        // .clk(clk),
+        // .rst(rst),
 
-        .mem_wb_reg(mem_wb_reg)
+        .mem_wb_reg(mem_wb_reg),
+        .wb_worked(wb_worked)
     );
 
 endmodule : cpu

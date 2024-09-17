@@ -1,8 +1,8 @@
 module id_stage
 import rv32i_types::*;
 (
-    input   logic           clk,
-    input   logic           rst,
+    // input   logic           clk,
+    // input   logic           rst,
 
     input   if_id_reg_t     if_id_reg,
     output  id_ex_reg_t     id_ex_reg,
@@ -27,9 +27,9 @@ import rv32i_types::*;
         id_ex_reg.rs2_s  = inst[24:20];
         id_ex_reg.rd_s   = inst[11:7];
 
-        id_ex_reg.inst   = inst;
-        id_ex_reg.pc     = if_id_reg.pc;
-        // id_ex_reg.order  = if_id_reg.order;
+        id_ex_reg.inst    = inst;
+        id_ex_reg.pc      = if_id_reg.pc;
+        id_ex_reg.pc_next = if_id_reg.pc_next;
 
         id_ex_reg.imem_addr  = if_id_reg.imem_addr;
     end

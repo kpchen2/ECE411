@@ -13,7 +13,7 @@ package rv32i_types;
 
     typedef struct packed {
         logic   [31:0]      pc;
-        // logic   [63:0]      order;
+        logic   [31:0]      pc_next;
 
         // what else?
         logic   [31:0]      imem_addr;
@@ -22,8 +22,7 @@ package rv32i_types;
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
-        // logic   [63:0]      order;
-        logic               valid;
+        logic   [31:0]      pc_next;
 
         // alu_m1_sel_t        alu_m1_sel;
 
@@ -46,7 +45,7 @@ package rv32i_types;
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
-        // logic   [63:0]      order;
+        logic   [31:0]      pc_next;
 
         // what else?
         logic   [31:0]      imem_addr;
@@ -66,6 +65,7 @@ package rv32i_types;
     typedef struct packed {
         logic   [31:0]      inst;
         logic   [31:0]      pc;
+        logic   [31:0]      pc_next;
         logic   [63:0]      order;
 
         // what else?

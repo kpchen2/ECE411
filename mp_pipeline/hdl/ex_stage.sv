@@ -1,7 +1,7 @@
 module ex_stage
 import rv32i_types::*;
 (
-    input   logic           clk,
+    // input   logic           clk,
     input   logic           rst,
 
     input   id_ex_reg_t     id_ex_reg,
@@ -55,10 +55,10 @@ import rv32i_types::*;
     end
 
     always_comb begin
-        ex_mem_reg.pc    = id_ex_reg.pc;
-        ex_mem_reg.inst  = id_ex_reg.inst;
-        ex_mem_reg.rd_s  = id_ex_reg.rd_s;
-        // ex_mem_reg.order = id_ex_reg.order;
+        ex_mem_reg.pc      = id_ex_reg.pc;
+        ex_mem_reg.pc_next = id_ex_reg.pc_next;
+        ex_mem_reg.inst    = id_ex_reg.inst;
+        ex_mem_reg.rd_s    = id_ex_reg.rd_s;
 
         ex_mem_reg.imem_addr  = id_ex_reg.imem_addr;
         ex_mem_reg.rs1_s      = id_ex_reg.rs1_s;
@@ -78,10 +78,14 @@ import rv32i_types::*;
         // rd_v       = 'x;
         // load_ir    = 1'b0;
         // regf_we    = 1'b0;
-        // a          = 'x;
-        // b          = 'x;
-        // aluop      = 'x;
-        // cmpop      = 'x;
+
+        ex_mem_reg.rd_v = '0;
+        ex_mem_reg.regf_we = '0;
+        ex_mem_reg.commit = '0;
+        a          = 'x;
+        b          = 'x;
+        aluop      = 'x;
+        cmpop      = 'x;
         unique case (id_ex_reg.opcode)
             // s_halt: begin
             //     pc_next = pc;
@@ -259,7 +263,13 @@ import rv32i_types::*;
                 // state_next = s_fetch;
             end
             default: begin
-                // state_next = s_halt;
+                // ex_mem_reg.rd_v = '0;
+                // ex_mem_reg.regf_we = '0;
+                // ex_mem_reg.commit = '0;
+                // a = '0;
+                // b = '0;
+                // aluop = '0;
+                // cmpop = '0;
             end
         endcase
 

@@ -1,10 +1,11 @@
 module wb_stage
 import rv32i_types::*;
 (
-    input   logic           clk,
-    input   logic           rst,
+    // input   logic           clk,
+    // input   logic           rst,
     
-    input   mem_wb_reg_t    mem_wb_reg
+    input   mem_wb_reg_t    mem_wb_reg,
+    output  logic           wb_worked
 );
 
     logic           monitor_valid;
@@ -34,12 +35,14 @@ import rv32i_types::*;
     assign monitor_rs2_rdata = mem_wb_reg.rs2_v;
     assign monitor_rd_addr = mem_wb_reg.rd_s;
     assign monitor_rd_wdata = mem_wb_reg.rd_v;
-    assign monitor_pc_rdata = mem_wb_reg.inst;
-    assign monitor_pc_wdata = mem_wb_reg.rd_v;
-    assign monitor_mem_addr = mem_wb_reg.imem_addr;
+    assign monitor_pc_rdata = mem_wb_reg.pc;
+    assign monitor_pc_wdata = mem_wb_reg.pc_next;
+    assign monitor_mem_addr = '0;
     assign monitor_mem_rmask = '0;
     assign monitor_mem_wmask = '0;
     assign monitor_mem_rdata = '0;
     assign monitor_mem_wdata = '0;
+
+    assign wb_worked = '1;
 
 endmodule : wb_stage
