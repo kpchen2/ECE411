@@ -8,12 +8,22 @@ import rv32i_types::*;
     output  id_ex_reg_t     id_ex_reg,
 
     input   logic   [31:0]  imem_rdata,
-    input   logic           imem_resp
+    input   logic           imem_resp,
+
+    output  logic           imem_halt
 );
 
     logic   [31:0]  inst;
     
     always_comb begin
+
+        id_ex_reg.bubble = 1'b0;
+        imem_halt = 1'b0;
+        if (if_id_reg.req_imem_resp && imem_resp == 1'b0) begin
+            id_ex_reg.bubble = 1'b1;
+            imem_halt = 1'b1;
+        end
+
         inst             = imem_resp ? imem_rdata : 0;
         id_ex_reg.funct3 = inst[14:12];
         id_ex_reg.funct7 = inst[31:25];

@@ -11,7 +11,9 @@ import rv32i_types::*;
     output  logic           increment,
 
     input   logic   [31:0]  dmem_rdata,
-    input   logic           dmem_resp
+    input   logic           dmem_resp,
+
+    output  logic           halt
 );
 
     always_comb begin
@@ -59,6 +61,15 @@ import rv32i_types::*;
             mem_wb_reg.commit = 1'b1;
         end else if (dmem_resp && ex_mem_reg.opcode == op_b_store) begin
             mem_wb_reg.commit = 1'b1;
+        end
+
+        halt = 1'b0;
+        if (ex_mem_reg.req_dmem_resp && dmem_resp == 1'b0) begin
+            halt = 1'b1;
+        end
+        
+        if (ex_mem_reg.bubble == 1'b1) begin
+            mem_wb_reg.commit = 1'b0;
         end
     end
 

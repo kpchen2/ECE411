@@ -13,9 +13,7 @@ import rv32i_types::*;
     output  logic   [31:0]  dmem_addr,
     output  logic   [3:0]   dmem_rmask,
     output  logic   [3:0]   dmem_wmask,
-    output  logic   [31:0]  dmem_wdata,
-
-    output  logic           req_dmem_resp
+    output  logic   [31:0]  dmem_wdata
 );
 
     logic          [31:0] a;
@@ -72,6 +70,8 @@ import rv32i_types::*;
         ex_mem_reg.imem_addr  = id_ex_reg.imem_addr;
         ex_mem_reg.rs1_v      = rs1_v;
         ex_mem_reg.rs2_v      = rs2_v;
+
+        ex_mem_reg.bubble     = id_ex_reg.bubble;
     end
 
     always_comb begin
@@ -102,7 +102,7 @@ import rv32i_types::*;
         ex_mem_reg.rs1_s = id_ex_reg.rs1_s;
         ex_mem_reg.rs2_s = id_ex_reg.rs2_s;
 
-        req_dmem_resp = '0;
+        ex_mem_reg.req_dmem_resp = '0;
         ex_mem_reg.dmem_shift_bits = 2'b0;
 
         unique case (id_ex_reg.opcode)
@@ -173,7 +173,7 @@ import rv32i_types::*;
                 ex_mem_reg.dmem_shift_bits = dmem_addr[1:0];
                 dmem_addr[1:0] = 2'd0;
 
-                req_dmem_resp = 1'b1;
+                ex_mem_reg.req_dmem_resp = 1'b1;
                 ex_mem_reg.rs2_s = '0;
             end
             op_b_store: begin
@@ -198,7 +198,7 @@ import rv32i_types::*;
                 ex_mem_reg.dmem_shift_bits = dmem_addr[1:0];
                 dmem_addr[1:0] = 2'd0;
 
-                req_dmem_resp = 1'b1;
+                ex_mem_reg.req_dmem_resp = 1'b1;
             end
             op_b_imm: begin
                 a = rs1_v;

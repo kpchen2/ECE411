@@ -17,6 +17,8 @@ package rv32i_types;
 
         // what else?
         logic   [31:0]      imem_addr;
+
+        logic               req_imem_resp;
     } if_id_reg_t;
 
     typedef struct packed {
@@ -40,6 +42,8 @@ package rv32i_types;
         logic   [4:0]       rs1_s;
         logic   [4:0]       rs2_s;
         logic   [4:0]       rd_s;
+
+        logic               bubble;
     } id_ex_reg_t;
 
     typedef struct packed {
@@ -67,6 +71,8 @@ package rv32i_types;
         logic               commit;
 
         logic   [1:0]       dmem_shift_bits;
+        logic               req_dmem_resp;
+        logic               bubble;
     } ex_mem_reg_t;
 
     typedef struct packed {
@@ -94,6 +100,7 @@ package rv32i_types;
         logic               commit;
 
         logic   [1:0]       dmem_shift_bits;
+        logic               bubble;
     } mem_wb_reg_t;
 
 

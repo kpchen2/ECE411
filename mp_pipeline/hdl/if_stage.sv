@@ -21,6 +21,7 @@ import rv32i_types::*;
         if_id_reg.imem_addr = 32'h1eceb000;
         if_id_reg.pc = 32'h1eceb000;
         if_id_reg.pc_next = 32'h1eceb000;
+        if_id_reg.req_imem_resp = 1'b1;
 
         req_imem_resp = 1'b0;
 
