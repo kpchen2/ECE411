@@ -37,11 +37,11 @@ import rv32i_types::*;
     assign monitor_rd_wdata = mem_wb_reg.rd_v;
     assign monitor_pc_rdata = mem_wb_reg.pc;
     assign monitor_pc_wdata = mem_wb_reg.pc_next;
-    assign monitor_mem_addr = '0;
-    assign monitor_mem_rmask = '0;
-    assign monitor_mem_wmask = '0;
-    assign monitor_mem_rdata = '0;
-    assign monitor_mem_wdata = '0;
+    assign monitor_mem_addr = mem_wb_reg.dmem_addr;
+    assign monitor_mem_rmask = mem_wb_reg.dmem_rmask;
+    assign monitor_mem_wmask = mem_wb_reg.dmem_wmask;
+    assign monitor_mem_rdata = mem_wb_reg.dmem_rdata;
+    assign monitor_mem_wdata = mem_wb_reg.dmem_wdata;
 
     assign wb_worked = '1;
 

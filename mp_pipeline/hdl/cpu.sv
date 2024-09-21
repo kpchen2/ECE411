@@ -27,6 +27,9 @@ import rv32i_types::*;
 
     logic           increment;
 
+    // logic           req_imem_resp;
+    logic           req_dmem_resp;
+
     // dummy variables to kill warnings (cp1)
     logic   [31:0]  d_rdata;
     logic           d_resp;
@@ -46,24 +49,78 @@ import rv32i_types::*;
             order <= 64'b0;
 
             // hardcoded values for cp1
-            dmem_addr <= '0;
-            dmem_rmask <= '0;
-            dmem_wmask <= '0;
-            dmem_wdata <= '0;
             d_rdata <= dmem_rdata;
             d_resp <= dmem_resp;
+
+            ex_mem_reg.commit <= '0;
+            mem_wb_reg.commit <= '0;
+
         end else begin
+            // if_id_reg  <= if_id_reg;
+            // id_ex_reg  <= id_ex_reg;
+            // ex_mem_reg <= ex_mem_reg;
+            // mem_wb_reg <= mem_wb_reg;
+            // pc <= pc;
+            // order <= order;
+
+            // if (req_dmem_resp) begin
+            //     if (dmem_resp && imem_resp) begin
+            //         if_id_reg  <= if_id_reg_next;
+            //         id_ex_reg  <= id_ex_reg_next;
+            //         ex_mem_reg <= ex_mem_reg_next;
+            //         mem_wb_reg <= mem_wb_reg_next;
+
+            //         pc <= pc_next;
+            //         order <= increment ? order + 64'b1 : order;
+            //     end
+            // end else begin
+            //     if_id_reg  <= if_id_reg_next;
+            //     id_ex_reg  <= id_ex_reg_next;
+            //     ex_mem_reg <= ex_mem_reg_next;
+            //     mem_wb_reg <= mem_wb_reg_next;
+
+            //     pc <= pc_next;
+            //     order <= increment ? order + 64'b1 : order;
+            // end
+
+            if_id_reg  <= if_id_reg_next;
+            id_ex_reg  <= id_ex_reg_next;
+            ex_mem_reg <= ex_mem_reg_next;
+            mem_wb_reg <= mem_wb_reg_next;
+
             pc <= pc_next;
             order <= increment ? order + 64'b1 : order;
         end
     end
 
-    always_ff @(posedge clk) begin
-        if_id_reg  <= if_id_reg_next;
-        id_ex_reg  <= id_ex_reg_next;
-        ex_mem_reg <= ex_mem_reg_next;
-        mem_wb_reg <= mem_wb_reg_next;
-    end
+    // always_ff @(posedge clk) begin
+    //     if (req_dmem_resp) begin
+    //         if (dmem_resp && imem_resp) begin
+    //             req_dmem_resp <= 1'b0;
+    //             if_id_reg  <= if_id_reg_next;
+    //             id_ex_reg  <= id_ex_reg_next;
+    //             ex_mem_reg <= ex_mem_reg_next;
+    //             mem_wb_reg <= mem_wb_reg_next;
+    //         end else begin
+    //             if_id_reg  <= if_id_reg;
+    //             id_ex_reg  <= id_ex_reg;
+    //             ex_mem_reg <= ex_mem_reg;
+    //             mem_wb_reg <= mem_wb_reg;
+    //         end
+    //     end else begin
+    //         if (imem_resp) begin
+    //             if_id_reg  <= if_id_reg_next;
+    //             id_ex_reg  <= id_ex_reg_next;
+    //             ex_mem_reg <= ex_mem_reg_next;
+    //             mem_wb_reg <= mem_wb_reg_next;
+    //         end else begin
+    //             if_id_reg  <= if_id_reg;
+    //             id_ex_reg  <= id_ex_reg;
+    //             ex_mem_reg <= ex_mem_reg;
+    //             mem_wb_reg <= mem_wb_reg;
+    //         end
+    //     end
+    // end
 
     if_stage if_stage_i (
         // .clk(clk),
@@ -109,18 +166,28 @@ import rv32i_types::*;
         .ex_mem_reg(ex_mem_reg_next),
 
         .rs1_v(rs1_v),
-        .rs2_v(rs2_v)
+        .rs2_v(rs2_v),
+
+        .dmem_addr(dmem_addr),
+        .dmem_rmask(dmem_rmask),
+        .dmem_wmask(dmem_wmask),
+        .dmem_wdata(dmem_wdata),
+
+        .req_dmem_resp(req_dmem_resp)
     );
 
     mem_stage mem_stage_i (
         // .clk(clk),
-        // .rst(rst),
+        .rst(rst),
 
         .ex_mem_reg(ex_mem_reg),
         .mem_wb_reg(mem_wb_reg_next),
 
         .order(order),
-        .increment(increment)
+        .increment(increment),
+
+        .dmem_rdata(dmem_rdata),
+        .dmem_resp(dmem_resp)
     );
 
     wb_stage wb_stage_i (

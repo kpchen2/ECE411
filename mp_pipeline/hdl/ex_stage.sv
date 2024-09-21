@@ -8,7 +8,14 @@ import rv32i_types::*;
     output  ex_mem_reg_t    ex_mem_reg,
 
     input   logic   [31:0]  rs1_v,
-    input   logic   [31:0]  rs2_v
+    input   logic   [31:0]  rs2_v,
+
+    output  logic   [31:0]  dmem_addr,
+    output  logic   [3:0]   dmem_rmask,
+    output  logic   [3:0]   dmem_wmask,
+    output  logic   [31:0]  dmem_wdata,
+
+    output  logic           req_dmem_resp
 );
 
     logic          [31:0] a;
@@ -60,9 +67,8 @@ import rv32i_types::*;
         ex_mem_reg.inst    = id_ex_reg.inst;
         ex_mem_reg.rd_s    = id_ex_reg.rd_s;
 
+        ex_mem_reg.funct3     = id_ex_reg.funct3;
         ex_mem_reg.imem_addr  = id_ex_reg.imem_addr;
-        // ex_mem_reg.rs1_s      = id_ex_reg.rs1_s;
-        // ex_mem_reg.rs2_s      = id_ex_reg.rs2_s;
         ex_mem_reg.rs1_v      = rs1_v;
         ex_mem_reg.rs2_v      = rs2_v;
     end
@@ -79,6 +85,11 @@ import rv32i_types::*;
         // load_ir    = 1'b0;
         // regf_we    = 1'b0;
 
+        dmem_addr  = '0;
+        dmem_rmask = '0;
+        dmem_wmask = '0;
+        dmem_wdata = '0;
+
         ex_mem_reg.rd_v = '0;
         ex_mem_reg.regf_we = '0;
         ex_mem_reg.commit = '0;
@@ -90,36 +101,9 @@ import rv32i_types::*;
         ex_mem_reg.rs1_s = id_ex_reg.rs1_s;
         ex_mem_reg.rs2_s = id_ex_reg.rs2_s;
 
+        req_dmem_resp = '0;
+
         unique case (id_ex_reg.opcode)
-            // s_halt: begin
-            //     pc_next = pc;
-            //     commit = 1'b1;
-            // end
-            // s_reset: begin
-            //     state_next = s_fetch;
-            // end
-            // s_fetch: begin
-            //     mem_addr = pc;
-            //     mem_rmask = '1;
-            //     if (mem_resp) begin
-            //        load_ir = 1'b1;
-            //        state_next = s_decode;
-            //     end
-            // end
-            // s_decode: begin
-            //     unique case (opcode)
-            //         op_b_lui  : state_next = s_lui;
-            //         op_b_auipc: state_next = s_aupic;
-            //         op_b_jal  : state_next = s_jal;
-            //         op_b_jalr : state_next = s_jalr;
-            //         op_b_br   : state_next = s_br;
-            //         op_b_load : state_next = s_load;
-            //         op_b_store: state_next = s_store;
-            //         op_b_imm  : state_next = s_ri;
-            //         op_b_reg  : state_next = s_rr;
-            //         default   : state_next = s_halt;
-            //     endcase
-            // end
             op_b_lui: begin
                 ex_mem_reg.rd_v = id_ex_reg.u_imm;
                 ex_mem_reg.regf_we = 1'b1;
@@ -166,44 +150,56 @@ import rv32i_types::*;
             //     commit = 1'b1;
             //     state_next = s_fetch;
             // end
-            // s_load: begin
-            //     mem_addr = rs1_v + i_imm;
-            //     unique case (funct3)
-            //         load_f3_lb, load_f3_lbu: mem_rmask = 4'b0001 << mem_addr[1:0];
-            //         load_f3_lh, load_f3_lhu: mem_rmask = 4'b0011 << mem_addr[1:0];
-            //         load_f3_lw             : mem_rmask = 4'b1111;
-            //         default                : mem_rmask = 'x;
-            //     endcase
-            //     if (mem_resp) begin
-            //         regf_we = 1'b1;
-            //         unique case (funct3)
-            //             load_f3_lb : rd_v = {{24{mem_rdata[7 +8 *mem_addr[1:0]]}}, mem_rdata[8 *mem_addr[1:0] +: 8 ]};
-            //             load_f3_lbu: rd_v = {{24{1'b0}}                          , mem_rdata[8 *mem_addr[1:0] +: 8 ]};
-            //             load_f3_lh : rd_v = {{16{mem_rdata[15+16*mem_addr[1]  ]}}, mem_rdata[16*mem_addr[1]   +: 16]};
-            //             load_f3_lhu: rd_v = {{16{1'b0}}                          , mem_rdata[16*mem_addr[1]   +: 16]};
-            //             load_f3_lw : rd_v = mem_rdata;
-            //             default    : rd_v = 'x;
-            //         endcase
-            //         pc_next = pc + 'd4;
-            //         commit = 1'b1;
-            //         state_next = s_fetch;
-            //     end
-            //     mem_addr[1:0] = 2'd0;
-            // end
-            // s_store: begin
-            //     mem_addr = rs1_v + s_imm;
-            //     unique case (funct3)
-            //         store_f3_sb: mem_wmask = 4'b0001 << mem_addr[1:0];
-            //         store_f3_sh: mem_wmask = 4'b0011 << mem_addr[1:0];
-            //         store_f3_sw: mem_wmask = 4'b1111;
-            //         default    : mem_wmask = 'x;
-            //     endcases_jal: begin
-            //     rd_v = pc + 'd4;
-            //     regf_we = 1'b1;
-            //     pc_next = pc + j_imm;
-            //     commit = 1'b1;
-            //     state_next = s_fetch;
-            // end
+            op_b_load: begin
+                dmem_addr = rs1_v + id_ex_reg.i_imm;
+                unique case (id_ex_reg.funct3)
+                    load_f3_lb, load_f3_lbu: dmem_rmask = 4'b0001 << dmem_addr[1:0];
+                    load_f3_lh, load_f3_lhu: dmem_rmask = 4'b0011 << dmem_addr[1:0];
+                    load_f3_lw             : dmem_rmask = 4'b1111;
+                    default                : dmem_rmask = 'x;
+                endcase
+                // if (mem_resp) begin
+                //     regf_we = 1'b1;
+                //     unique case (funct3)
+                //         load_f3_lb : rd_v = {{24{mem_rdata[7 +8 *mem_addr[1:0]]}}, mem_rdata[8 *mem_addr[1:0] +: 8 ]};
+                //         load_f3_lbu: rd_v = {{24{1'b0}}                          , mem_rdata[8 *mem_addr[1:0] +: 8 ]};
+                //         load_f3_lh : rd_v = {{16{mem_rdata[15+16*mem_addr[1]  ]}}, mem_rdata[16*mem_addr[1]   +: 16]};
+                //         load_f3_lhu: rd_v = {{16{1'b0}}                          , mem_rdata[16*mem_addr[1]   +: 16]};
+                //         load_f3_lw : rd_v = mem_rdata;
+                //         default    : rd_v = 'x;
+                //     endcase
+                //     pc_next = pc + 'd4;
+                //     commit = 1'b1;
+                //     state_next = s_fetch;
+                // end
+                dmem_addr[1:0] = 2'd0;
+
+                req_dmem_resp = 1'b1;
+                ex_mem_reg.rs2_s = '0;
+            end
+            op_b_store: begin
+                dmem_addr = rs1_v + id_ex_reg.s_imm;
+                unique case (id_ex_reg.funct3)
+                    store_f3_sb: dmem_wmask = 4'b0001 << dmem_addr[1:0];
+                    store_f3_sh: dmem_wmask = 4'b0011 << dmem_addr[1:0];
+                    store_f3_sw: dmem_wmask = 4'b1111;
+                    default    : dmem_wmask = 'x;
+                endcase
+                unique case (id_ex_reg.funct3)
+                    store_f3_sb: dmem_wdata[8 *dmem_addr[1:0] +: 8 ] = rs2_v[7 :0];
+                    store_f3_sh: dmem_wdata[16*dmem_addr[1]   +: 16] = rs2_v[15:0];
+                    store_f3_sw: dmem_wdata = rs2_v;
+                    default    : dmem_wdata = 'x;
+                endcase
+                // if (mem_resp) begin
+                //     pc_next = pc + 'd4;
+                //     commit = 1'b1;
+                //     state_next = s_fetch;
+                // end
+                dmem_addr[1:0] = 2'd0;
+
+                req_dmem_resp = 1'b1;
+            end
             op_b_imm: begin
                 a = rs1_v;
                 b = id_ex_reg.i_imm;
@@ -284,6 +280,11 @@ import rv32i_types::*;
                 // cmpop = '0;
             end
         endcase
+
+        ex_mem_reg.dmem_addr = dmem_addr;
+        ex_mem_reg.dmem_rmask = dmem_rmask;
+        ex_mem_reg.dmem_wmask = dmem_wmask;
+        ex_mem_reg.dmem_wdata = dmem_wdata;
 
         if (rst == 1) begin
             ex_mem_reg.commit = 1'b0;

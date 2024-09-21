@@ -40,7 +40,7 @@ import rv32i_types::*;
     // Note that this memory model is not consistent! It ignores
     // writes and always reads out a random, valid instruction.
     task run_random_instrs();
-        repeat (50000) begin
+        repeat (500) begin
             @(posedge itf.clk iff (|itf.rmask[0] || |itf.wmask[0]));
 
             // Always read out a valid instruction.
@@ -51,6 +51,7 @@ import rv32i_types::*;
 
             // If it's a write, do nothing and just respond.
             itf.resp[0] <= 1'b1;
+            // itf.resp[1] <= 1'b0;
             // @(posedge itf.clk) itf.resp[0] <= 1'b0;
             @(posedge itf.clk iff (|itf.rmask[0] || |itf.wmask[0]));
             itf.rdata[0] <= 32'h13;

@@ -1,23 +1,40 @@
+.section .data
+data:
+    .word 0x1eceb923
+    .word 0xcafebabe
+    .word 0xabcdaba0
+    .word 0x12345678
+    .word 0x877654321
+    .word 0xbabecafe
+    .word 0xbabababa
+
 .section .text
 .globl _start
 _start:
-    addi x1, x0, 4
-    nop             # nops in between to prevent hazard
-    nop
-    nop
-    nop
-    nop
-    addi x3, x1, 8
+    auipc   x1, 0
     nop
     nop
     nop
     nop
     nop
-    addi x3, x3, 1
+    addi    x1, x1, 0x600
     nop
     nop
     nop
     nop
     nop
+    addi    x1, x1, 0x600
+    nop
+    nop
+    nop
+    nop
+    nop
+    addi    x1, x1, 0x400
+    nop
+    nop
+    nop
+    nop
+    nop
+    lb      x4, 8(x1)
 
-    slti x0, x0, -256 # this is the magic instruction to end the simulation
+    slti    x0, x0, -256

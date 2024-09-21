@@ -5,7 +5,7 @@ class RandInst;
     // You will increment this number as you generate more random instruction
     // types. Once finished, NUM_TYPES should be 9, for each opcode type in
     // rv32i_opcode.
-    localparam NUM_TYPES = 4;
+    localparam NUM_TYPES = 5;
 
     // Note that the `instr_t` type is from ../pkg/types.sv, there are TODOs
     // you must complete there to fully define `instr_t`.
@@ -83,11 +83,11 @@ class RandInst;
         //     instr.i_type.opcode == op_b_load;
         // TODO: Constrain funct3 as well.
         // }
-        // instr_type[3] -> {
-        //     instr.i_type.opcode == op_b_load;
+        instr_type[4] -> {
+            instr.i_type.opcode == op_b_load;
 
-        //     instr.i_type.funct3 inside {load_f3_lb, load_f3_lh, load_f3_lw, load_f3_lbu, load_f3_lhu};
-        // }
+            instr.i_type.funct3 inside {load_f3_lb, load_f3_lh, load_f3_lw, load_f3_lbu, load_f3_lhu};
+        }
 
         // TODO: Do all 9 types!
         instr_type[2] -> {
