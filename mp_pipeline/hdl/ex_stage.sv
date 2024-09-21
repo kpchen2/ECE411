@@ -68,6 +68,7 @@ import rv32i_types::*;
         ex_mem_reg.rd_s    = id_ex_reg.rd_s;
 
         ex_mem_reg.funct3     = id_ex_reg.funct3;
+        ex_mem_reg.opcode     = id_ex_reg.opcode;
         ex_mem_reg.imem_addr  = id_ex_reg.imem_addr;
         ex_mem_reg.rs1_v      = rs1_v;
         ex_mem_reg.rs2_v      = rs2_v;
@@ -102,14 +103,13 @@ import rv32i_types::*;
         ex_mem_reg.rs2_s = id_ex_reg.rs2_s;
 
         req_dmem_resp = '0;
+        ex_mem_reg.dmem_shift_bits = 2'b0;
 
         unique case (id_ex_reg.opcode)
             op_b_lui: begin
                 ex_mem_reg.rd_v = id_ex_reg.u_imm;
                 ex_mem_reg.regf_we = 1'b1;
-                // pc_next = pc + 'd4;
                 ex_mem_reg.commit = 1'b1;
-                // state_next = s_fetch;
 
                 ex_mem_reg.rs1_s = '0;
                 ex_mem_reg.rs2_s = '0;
@@ -117,9 +117,7 @@ import rv32i_types::*;
             op_b_auipc: begin
                 ex_mem_reg.rd_v = id_ex_reg.pc + id_ex_reg.u_imm;
                 ex_mem_reg.regf_we = 1'b1;
-                // pc_next = pc + 'd4;
                 ex_mem_reg.commit = 1'b1;
-                // state_next = s_fetch;
 
                 ex_mem_reg.rs1_s = '0;
                 ex_mem_reg.rs2_s = '0;
@@ -172,6 +170,7 @@ import rv32i_types::*;
                 //     commit = 1'b1;
                 //     state_next = s_fetch;
                 // end
+                ex_mem_reg.dmem_shift_bits = dmem_addr[1:0];
                 dmem_addr[1:0] = 2'd0;
 
                 req_dmem_resp = 1'b1;
@@ -196,6 +195,7 @@ import rv32i_types::*;
                 //     commit = 1'b1;
                 //     state_next = s_fetch;
                 // end
+                ex_mem_reg.dmem_shift_bits = dmem_addr[1:0];
                 dmem_addr[1:0] = 2'd0;
 
                 req_dmem_resp = 1'b1;
@@ -226,9 +226,7 @@ import rv32i_types::*;
                     end
                 endcase
                 ex_mem_reg.regf_we = 1'b1;
-                // pc_next = pc + 'd4;
                 ex_mem_reg.commit = 1'b1;
-                // state_next = s_fetch;
 
                 ex_mem_reg.rs2_s = '0;
             end
@@ -266,9 +264,7 @@ import rv32i_types::*;
                     end
                 endcase
                 ex_mem_reg.regf_we = 1'b1;
-                // pc_next = pc + 'd4;
                 ex_mem_reg.commit = 1'b1;
-                // state_next = s_fetch;
             end
             default: begin
                 // ex_mem_reg.rd_v = '0;

@@ -40,23 +40,25 @@ import rv32i_types::*;
     always_comb begin
         if (rst) begin
             mem_wb_reg.commit = 1'b0;
-        end else begin
-            mem_wb_reg.rd_v = ex_mem_reg.rd_v;
-            mem_wb_reg.commit = ex_mem_reg.commit;
-            mem_wb_reg.regf_we = ex_mem_reg.regf_we;
+        end
+        
+        mem_wb_reg.rd_v = ex_mem_reg.rd_v;
+        mem_wb_reg.commit = ex_mem_reg.commit;
+        mem_wb_reg.regf_we = ex_mem_reg.regf_we;
 
-            if (dmem_resp) begin
-                mem_wb_reg.regf_we = 1'b1;
-                unique case (ex_mem_reg.funct3)
-                    load_f3_lb : mem_wb_reg.rd_v = {{24{dmem_rdata[7 +8 *ex_mem_reg.dmem_addr[1:0]]}}, dmem_rdata[8 *ex_mem_reg.dmem_addr[1:0] +: 8 ]};
-                    load_f3_lbu: mem_wb_reg.rd_v = {{24{1'b0}}                                       , dmem_rdata[8 *ex_mem_reg.dmem_addr[1:0] +: 8 ]};
-                    load_f3_lh : mem_wb_reg.rd_v = {{16{dmem_rdata[15+16*ex_mem_reg.dmem_addr[1]  ]}}, dmem_rdata[16*ex_mem_reg.dmem_addr[1]   +: 16]};
-                    load_f3_lhu: mem_wb_reg.rd_v = {{16{1'b0}}                                       , dmem_rdata[16*ex_mem_reg.dmem_addr[1]   +: 16]};
-                    load_f3_lw : mem_wb_reg.rd_v = dmem_rdata;
-                    default    : mem_wb_reg.rd_v = 'x;
-                endcase
-                mem_wb_reg.commit = 1'b1;
-            end
+        if (dmem_resp && ex_mem_reg.opcode == op_b_load) begin
+            mem_wb_reg.regf_we = 1'b1;
+            unique case (ex_mem_reg.funct3)
+                load_f3_lb : mem_wb_reg.rd_v = {{24{dmem_rdata[7 +8 *ex_mem_reg.dmem_shift_bits]}}, dmem_rdata[8 *ex_mem_reg.dmem_shift_bits +: 8 ]};
+                load_f3_lbu: mem_wb_reg.rd_v = {{24{1'b0}}                                        , dmem_rdata[8 *ex_mem_reg.dmem_shift_bits +: 8 ]};
+                load_f3_lh : mem_wb_reg.rd_v = {{16{dmem_rdata[15+16*ex_mem_reg.dmem_shift_bits[1]  ]}}, dmem_rdata[16*ex_mem_reg.dmem_shift_bits[1]   +: 16]};
+                load_f3_lhu: mem_wb_reg.rd_v = {{16{1'b0}}                                        , dmem_rdata[16*ex_mem_reg.dmem_shift_bits[1]   +: 16]};
+                load_f3_lw : mem_wb_reg.rd_v = dmem_rdata;
+                default    : mem_wb_reg.rd_v = 'x;
+            endcase
+            mem_wb_reg.commit = 1'b1;
+        end else if (dmem_resp && ex_mem_reg.opcode == op_b_store) begin
+            mem_wb_reg.commit = 1'b1;
         end
     end
 

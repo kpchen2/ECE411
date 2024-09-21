@@ -33,7 +33,7 @@ import rv32i_types::*;
     assign monitor_rs2_addr = mem_wb_reg.rs2_s;
     assign monitor_rs1_rdata = mem_wb_reg.rs1_v;
     assign monitor_rs2_rdata = mem_wb_reg.rs2_v;
-    assign monitor_rd_addr = mem_wb_reg.rd_s;
+    assign monitor_rd_addr = (mem_wb_reg.regf_we === 0) ? '0 : mem_wb_reg.rd_s;
     assign monitor_rd_wdata = mem_wb_reg.rd_v;
     assign monitor_pc_rdata = mem_wb_reg.pc;
     assign monitor_pc_wdata = mem_wb_reg.pc_next;

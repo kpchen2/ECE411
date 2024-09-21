@@ -55,6 +55,7 @@ package rv32i_types;
         logic   [31:0]      dmem_wdata;
 
         logic   [2:0]       funct3;
+        logic   [6:0]       opcode;
         logic   [4:0]       rs1_s;
         logic   [4:0]       rs2_s;
         logic   [31:0]      rs1_v;
@@ -64,6 +65,8 @@ package rv32i_types;
         logic   [4:0]       rd_s;
         logic               regf_we;
         logic               commit;
+
+        logic   [1:0]       dmem_shift_bits;
     } ex_mem_reg_t;
 
     typedef struct packed {
@@ -90,7 +93,7 @@ package rv32i_types;
         logic               regf_we;
         logic               commit;
 
-        // logic   [31:0]      dmem_rdata;
+        logic   [1:0]       dmem_shift_bits;
     } mem_wb_reg_t;
 
 

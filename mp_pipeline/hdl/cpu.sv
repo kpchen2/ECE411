@@ -27,7 +27,7 @@ import rv32i_types::*;
 
     logic           increment;
 
-    // logic           req_imem_resp;
+    logic           req_imem_resp;
     logic           req_dmem_resp;
 
     // dummy variables to kill warnings (cp1)
@@ -65,6 +65,16 @@ import rv32i_types::*;
 
             // if (req_dmem_resp) begin
             //     if (dmem_resp && imem_resp) begin
+            //         if_id_reg  <= if_id_reg_next;
+            //         id_ex_reg  <= id_ex_reg_next;
+            //         ex_mem_reg <= ex_mem_reg_next;
+            //         mem_wb_reg <= mem_wb_reg_next;
+
+            //         pc <= pc_next;
+            //         order <= increment ? order + 64'b1 : order;
+            //     end
+            // end else if (req_imem_resp) begin
+            //     if (imem_resp) begin
             //         if_id_reg  <= if_id_reg_next;
             //         id_ex_reg  <= id_ex_reg_next;
             //         ex_mem_reg <= ex_mem_reg_next;
@@ -131,7 +141,9 @@ import rv32i_types::*;
         .if_id_reg(if_id_reg_next),
 
         .imem_addr(imem_addr),
-        .imem_rmask(imem_rmask)
+        .imem_rmask(imem_rmask),
+
+        .req_imem_resp(req_imem_resp)
     );
 
     id_stage id_stage_i (
