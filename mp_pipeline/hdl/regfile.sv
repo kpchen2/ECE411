@@ -20,14 +20,18 @@ module regfile
         end
     end
 
-    always_ff @(posedge clk) begin
-        if (rst) begin
-            rs1_v <= 'x;
-            rs2_v <= 'x;
-        end else begin
-            rs1_v <= (rs1_s != 5'd0) ? data[rs1_s] : '0;
-            rs2_v <= (rs2_s != 5'd0) ? data[rs2_s] : '0;
-        end
+    // always_ff @(posedge clk) begin
+    //     if (rst) begin
+    //         rs1_v <= 'x;
+    //         rs2_v <= 'x;
+    //     end else begin
+    //         rs1_v <= (rs1_s != 5'd0) ? data[rs1_s] : '0;
+    //         rs2_v <= (rs2_s != 5'd0) ? data[rs2_s] : '0;
+    //     end
+    // end
+    always_comb begin
+        rs1_v <= (rs1_s != 5'd0) ? data[rs1_s] : '0;
+        rs2_v <= (rs2_s != 5'd0) ? data[rs2_s] : '0;
     end
 
 endmodule : regfile

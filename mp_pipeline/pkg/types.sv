@@ -57,6 +57,8 @@ package rv32i_types;
         logic   [3:0]       dmem_rmask;
         logic   [3:0]       dmem_wmask;
         logic   [31:0]      dmem_wdata;
+        logic   [1:0]       dmem_shift_bits;
+        logic               req_dmem_resp;
 
         logic   [2:0]       funct3;
         logic   [6:0]       opcode;
@@ -64,14 +66,11 @@ package rv32i_types;
         logic   [4:0]       rs2_s;
         logic   [31:0]      rs1_v;
         logic   [31:0]      rs2_v;
-
         logic   [31:0]      rd_v;
         logic   [4:0]       rd_s;
+
         logic               regf_we;
         logic               commit;
-
-        logic   [1:0]       dmem_shift_bits;
-        logic               req_dmem_resp;
         logic               bubble;
     } ex_mem_reg_t;
 
@@ -93,9 +92,9 @@ package rv32i_types;
         logic   [4:0]       rs2_s;
         logic   [31:0]      rs1_v;
         logic   [31:0]      rs2_v;
-
         logic   [31:0]      rd_v;
         logic   [4:0]       rd_s;
+        
         logic               regf_we;
         logic               commit;
     } mem_wb_reg_t;

@@ -2,7 +2,7 @@ module ex_stage
 import rv32i_types::*;
 (
     // input   logic           clk,
-    input   logic           rst,
+    // input   logic           rst,
 
     input   id_ex_reg_t     id_ex_reg,
     output  ex_mem_reg_t    ex_mem_reg,
@@ -10,10 +10,16 @@ import rv32i_types::*;
     input   logic   [31:0]  rs1_v,
     input   logic   [31:0]  rs2_v,
 
+    output  logic   [4:0]   rs1_s,
+    output  logic   [4:0]   rs2_s,
+
     output  logic   [31:0]  dmem_addr,
     output  logic   [3:0]   dmem_rmask,
     output  logic   [3:0]   dmem_wmask,
-    output  logic   [31:0]  dmem_wdata
+    output  logic   [31:0]  dmem_wdata,
+
+    output  logic           branch_select,
+    output  logic   [31:0]  branch_pc
 );
 
     logic          [31:0] a;
@@ -27,6 +33,9 @@ import rv32i_types::*;
 
     logic                 br_en;
     logic          [2:0]  cmpop;
+
+    assign rs1_s = id_ex_reg.rs1_s;
+    assign rs2_s = id_ex_reg.rs2_s;
 
     assign as =   signed'(a);
     assign bs =   signed'(b);
@@ -61,7 +70,7 @@ import rv32i_types::*;
 
     always_comb begin
         ex_mem_reg.pc      = id_ex_reg.pc;
-        ex_mem_reg.pc_next = id_ex_reg.pc_next;
+        // ex_mem_reg.pc_next = id_ex_reg.pc_next;
         ex_mem_reg.inst    = id_ex_reg.inst;
         ex_mem_reg.rd_s    = id_ex_reg.rd_s;
 
@@ -105,7 +114,12 @@ import rv32i_types::*;
         ex_mem_reg.req_dmem_resp = '0;
         ex_mem_reg.dmem_shift_bits = 2'b0;
 
-        unique case (id_ex_reg.opcode)
+        ex_mem_reg.pc_next = id_ex_reg.pc_next;
+
+        branch_select = '0;
+        branch_pc = '0;
+
+        case (id_ex_reg.opcode)
             op_b_lui: begin
                 ex_mem_reg.rd_v = id_ex_reg.u_imm;
                 ex_mem_reg.regf_we = 1'b1;
@@ -122,32 +136,43 @@ import rv32i_types::*;
                 ex_mem_reg.rs1_s = '0;
                 ex_mem_reg.rs2_s = '0;
             end
-            // s_jal: begin
-            //     rd_v = pc + 'd4;
-            //     regf_we = 1'b1;
-            //     pc_next = pc + j_imm;
-            //     commit = 1'b1;d0
-            //     state_next = s_fetch;
-            // end
-            // s_jalr: begin
-            //     rd_v = pc + 'd4;
-            //     regf_we = 1'b1;
-            //     pc_next = (rs1_v + i_imm) & 32'hfffffffe;
-            //     commit = 1'b1;
-            //     state_next = s_fetch;
-            // end
-            // s_br: begin
-            //     cmpop = funct3;
-            //     a = rs1_v;
-            //     b = rs2_v;
-            //     if (br_en) begin
-            //         pc_next = pc + b_imm;
-            //     end else begin
-            //         pc_next = pc + 'd4;
-            //     end
-            //     commit = 1'b1;
-            //     state_next = s_fetch;
-            // end
+            op_b_jal: begin
+                ex_mem_reg.rd_v = id_ex_reg.pc + 'd4;
+                ex_mem_reg.regf_we = 1'b1;
+                ex_mem_reg.pc_next = id_ex_reg.pc + id_ex_reg.j_imm;
+                ex_mem_reg.commit = 1'b1;
+
+                branch_select = '1;
+                branch_pc = ex_mem_reg.pc_next;
+
+                ex_mem_reg.rs1_s = '0;
+                ex_mem_reg.rs2_s = '0;
+            end
+            op_b_jalr: begin
+                ex_mem_reg.rd_v = id_ex_reg.pc + 'd4;
+                ex_mem_reg.regf_we = 1'b1;
+                ex_mem_reg.pc_next = (rs1_v + id_ex_reg.i_imm) & 32'hfffffffe;
+                ex_mem_reg.commit = 1'b1;
+
+                branch_select = '1;
+                branch_pc = ex_mem_reg.pc_next;
+
+                ex_mem_reg.rs2_s = '0;
+            end
+            op_b_br: begin
+                cmpop = id_ex_reg.funct3;
+                a = rs1_v;
+                b = rs2_v;
+                if (br_en) begin
+                    ex_mem_reg.pc_next = id_ex_reg.pc + id_ex_reg.b_imm;
+
+                    branch_select = '1;
+                    branch_pc = ex_mem_reg.pc_next;
+                end else begin
+                    ex_mem_reg.pc_next = id_ex_reg.pc + 'd4;
+                end
+                ex_mem_reg.commit = 1'b1;
+            end
             op_b_load: begin
                 dmem_addr = rs1_v + id_ex_reg.i_imm;
                 unique case (id_ex_reg.funct3)
@@ -266,7 +291,7 @@ import rv32i_types::*;
                 ex_mem_reg.regf_we = 1'b1;
                 ex_mem_reg.commit = 1'b1;
             end
-            default: begin
+            // default: begin
                 // ex_mem_reg.rd_v = '0;
                 // ex_mem_reg.regf_we = '0;
                 // ex_mem_reg.commit = '0;
@@ -274,7 +299,7 @@ import rv32i_types::*;
                 // b = '0;
                 // aluop = '0;
                 // cmpop = '0;
-            end
+            // end
         endcase
 
         ex_mem_reg.dmem_addr  = dmem_addr;
@@ -282,9 +307,9 @@ import rv32i_types::*;
         ex_mem_reg.dmem_wmask = dmem_wmask;
         ex_mem_reg.dmem_wdata = dmem_wdata;
 
-        if (rst == 1) begin
-            ex_mem_reg.commit = 1'b0;
-        end
+        // if (rst == 1) begin
+        //     ex_mem_reg.commit = 1'b0;
+        // end
     end
 
 endmodule : ex_stage
