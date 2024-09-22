@@ -30,8 +30,6 @@ import rv32i_types::*;
         mem_wb_reg.rs1_v     = ex_mem_reg.rs1_v;
         mem_wb_reg.rs2_v     = ex_mem_reg.rs2_v;
 
-        increment = mem_wb_reg.commit ? '1 : '0;
-
         mem_wb_reg.dmem_addr  = ex_mem_reg.dmem_addr;
         mem_wb_reg.dmem_rmask = ex_mem_reg.dmem_rmask;
         mem_wb_reg.dmem_wmask = ex_mem_reg.dmem_wmask;
@@ -59,8 +57,12 @@ import rv32i_types::*;
                 default    : mem_wb_reg.rd_v = 'x;
             endcase
             mem_wb_reg.commit = 1'b1;
+            increment = '1;
         end else if (dmem_resp && ex_mem_reg.opcode == op_b_store) begin
             mem_wb_reg.commit = 1'b1;
+            increment = '1;
+        end else begin
+            increment = ex_mem_reg.commit ? '1 : '0;
         end
 
         halt = 1'b0;

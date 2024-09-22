@@ -16,9 +16,9 @@ import rv32i_types::*;
     logic   [31:0]  inst;
     
     always_comb begin
-
         id_ex_reg.bubble = 1'b0;
         imem_halt = 1'b0;
+
         if (if_id_reg.req_imem_resp && imem_resp == 1'b0) begin
             id_ex_reg.bubble = 1'b1;
             imem_halt = 1'b1;
@@ -37,11 +37,10 @@ import rv32i_types::*;
         id_ex_reg.rs2_s  = inst[24:20];
         id_ex_reg.rd_s   = inst[11:7];
 
-        id_ex_reg.inst    = inst;
-        id_ex_reg.pc      = if_id_reg.pc;
-        id_ex_reg.pc_next = if_id_reg.pc_next;
-
-        id_ex_reg.imem_addr  = if_id_reg.imem_addr;
+        id_ex_reg.inst      = inst;
+        id_ex_reg.pc        = if_id_reg.pc;
+        id_ex_reg.pc_next   = if_id_reg.pc_next;
+        id_ex_reg.imem_addr = if_id_reg.imem_addr;
     end
 
 endmodule : id_stage

@@ -71,7 +71,7 @@ import rv32i_types::*;
                 ex_mem_reg <= ex_mem_reg_next;
                 mem_wb_reg <= mem_wb_reg_next;
                 pc <= pc;
-                order <= order;
+                order <= increment ? order + 64'b1 : order;
             end else begin
                 if_id_reg  <= if_id_reg_next;
                 id_ex_reg  <= id_ex_reg_next;

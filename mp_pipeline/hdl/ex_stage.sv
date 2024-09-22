@@ -277,7 +277,7 @@ import rv32i_types::*;
             end
         endcase
 
-        ex_mem_reg.dmem_addr = dmem_addr;
+        ex_mem_reg.dmem_addr  = dmem_addr;
         ex_mem_reg.dmem_rmask = dmem_rmask;
         ex_mem_reg.dmem_wmask = dmem_wmask;
         ex_mem_reg.dmem_wdata = dmem_wdata;

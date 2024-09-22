@@ -98,9 +98,6 @@ package rv32i_types;
         logic   [4:0]       rd_s;
         logic               regf_we;
         logic               commit;
-
-        logic   [1:0]       dmem_shift_bits;
-        logic               bubble;
     } mem_wb_reg_t;
 
 
