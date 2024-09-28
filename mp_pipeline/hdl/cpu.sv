@@ -24,7 +24,6 @@ import rv32i_types::*;
 
     logic   [4:0]   rs1_s;
     logic   [4:0]   rs2_s;
-
     logic   [31:0]  rs1_v;
     logic   [31:0]  rs2_v;
 
@@ -35,7 +34,6 @@ import rv32i_types::*;
 
     logic           branch_select;
     logic   [31:0]  branch_pc;
-
     logic           flush_special;
 
     // dummy variables to kill warnings (cp1)
@@ -131,6 +129,8 @@ import rv32i_types::*;
 
         .id_ex_reg(id_ex_reg),
         .ex_mem_reg(ex_mem_reg_next),
+        .forward_ex_mem_reg(ex_mem_reg),
+        .forward_mem_wb_reg(mem_wb_reg),
 
         .rs1_v(rs1_v),
         .rs2_v(rs2_v),

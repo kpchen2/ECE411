@@ -46,32 +46,35 @@ import rv32i_types::*;
         mem_wb_reg.commit = ex_mem_reg.commit;
         mem_wb_reg.regf_we = ex_mem_reg.regf_we;
 
-        if (dmem_resp && ex_mem_reg.opcode == op_b_load) begin
-            mem_wb_reg.regf_we = 1'b1;
-            unique case (ex_mem_reg.funct3)
-                load_f3_lb : mem_wb_reg.rd_v = {{24{dmem_rdata[7 +8 *ex_mem_reg.dmem_shift_bits]}}, dmem_rdata[8 *ex_mem_reg.dmem_shift_bits +: 8 ]};
-                load_f3_lbu: mem_wb_reg.rd_v = {{24{1'b0}}                                        , dmem_rdata[8 *ex_mem_reg.dmem_shift_bits +: 8 ]};
-                load_f3_lh : mem_wb_reg.rd_v = {{16{dmem_rdata[15+16*ex_mem_reg.dmem_shift_bits[1]  ]}}, dmem_rdata[16*ex_mem_reg.dmem_shift_bits[1]   +: 16]};
-                load_f3_lhu: mem_wb_reg.rd_v = {{16{1'b0}}                                        , dmem_rdata[16*ex_mem_reg.dmem_shift_bits[1]   +: 16]};
-                load_f3_lw : mem_wb_reg.rd_v = dmem_rdata;
-                default    : mem_wb_reg.rd_v = 'x;
-            endcase
-            mem_wb_reg.commit = 1'b1;
-            increment = '1;
-        end else if (dmem_resp && ex_mem_reg.opcode == op_b_store) begin
-            mem_wb_reg.commit = 1'b1;
-            increment = '1;
+        if (ex_mem_reg.bubble == '0) begin
+            if (dmem_resp && ex_mem_reg.opcode == op_b_load) begin
+                mem_wb_reg.regf_we = 1'b1;
+                unique case (ex_mem_reg.funct3)
+                    load_f3_lb : mem_wb_reg.rd_v = {{24{dmem_rdata[7 +8 *ex_mem_reg.dmem_shift_bits]}}, dmem_rdata[8 *ex_mem_reg.dmem_shift_bits +: 8 ]};
+                    load_f3_lbu: mem_wb_reg.rd_v = {{24{1'b0}}                                        , dmem_rdata[8 *ex_mem_reg.dmem_shift_bits +: 8 ]};
+                    load_f3_lh : mem_wb_reg.rd_v = {{16{dmem_rdata[15+16*ex_mem_reg.dmem_shift_bits[1]  ]}}, dmem_rdata[16*ex_mem_reg.dmem_shift_bits[1]   +: 16]};
+                    load_f3_lhu: mem_wb_reg.rd_v = {{16{1'b0}}                                        , dmem_rdata[16*ex_mem_reg.dmem_shift_bits[1]   +: 16]};
+                    load_f3_lw : mem_wb_reg.rd_v = dmem_rdata;
+                    default    : mem_wb_reg.rd_v = 'x;
+                endcase
+                mem_wb_reg.commit = 1'b1;
+                increment = '1;
+            end else if (dmem_resp && ex_mem_reg.opcode == op_b_store) begin
+                mem_wb_reg.commit = 1'b1;
+                increment = '1;
+            end else begin
+                increment = ex_mem_reg.commit ? '1 : '0;
+            end
         end else begin
-            increment = ex_mem_reg.commit ? '1 : '0;
-        end
+            mem_wb_reg.regf_we = '0;
+            mem_wb_reg.rd_v = '0;
+            increment = '0;
+            mem_wb_reg.commit = '0;
+        end 
 
         halt = 1'b0;
         if (ex_mem_reg.req_dmem_resp && dmem_resp == 1'b0) begin
             halt = 1'b1;
-        end
-        
-        if (ex_mem_reg.bubble == 1'b1) begin
-            mem_wb_reg.commit = 1'b0;
         end
     end
 

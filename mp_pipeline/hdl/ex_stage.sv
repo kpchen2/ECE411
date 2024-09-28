@@ -6,6 +6,8 @@ import rv32i_types::*;
 
     input   id_ex_reg_t     id_ex_reg,
     output  ex_mem_reg_t    ex_mem_reg,
+    input   ex_mem_reg_t    forward_ex_mem_reg,
+    input   mem_wb_reg_t    forward_mem_wb_reg,
 
     input   logic   [31:0]  rs1_v,
     input   logic   [31:0]  rs2_v,
@@ -24,6 +26,8 @@ import rv32i_types::*;
 
     logic          [31:0] a;
     logic          [31:0] b;
+    logic          [31:0] a_out;
+    logic          [31:0] b_out;
     logic signed   [31:0] as;
     logic signed   [31:0] bs;
     logic unsigned [31:0] au;
@@ -34,13 +38,49 @@ import rv32i_types::*;
     logic                 br_en;
     logic          [2:0]  cmpop;
 
+    logic          [1:0]  forwardA;
+    logic          [1:0]  forwardB;
+
     assign rs1_s = id_ex_reg.rs1_s;
     assign rs2_s = id_ex_reg.rs2_s;
 
-    assign as =   signed'(a);
-    assign bs =   signed'(b);
-    assign au = unsigned'(a);
-    assign bu = unsigned'(b);
+    assign as =   signed'(a_out);
+    assign bs =   signed'(b_out);
+    assign au = unsigned'(a_out);
+    assign bu = unsigned'(b_out);
+
+    always_comb begin
+        if (forward_ex_mem_reg.regf_we && (forward_ex_mem_reg.rd_s != 0) && (forward_ex_mem_reg.rd_s == id_ex_reg.rs1_s)) begin
+            forwardA = 2'b10;
+            a_out = forward_ex_mem_reg.rd_v;
+        end else if (forward_mem_wb_reg.regf_we && (forward_mem_wb_reg.rd_s != 0) && (forward_mem_wb_reg.rd_s == id_ex_reg.rs1_s)) begin
+            forwardA = 2'b01;
+            a_out = forward_mem_wb_reg.rd_v;
+            // check if load
+        end else begin
+            forwardA = '0;
+            a_out = a;
+        end
+
+        if (forward_ex_mem_reg.regf_we && (forward_ex_mem_reg.rd_s != 0) && (forward_ex_mem_reg.rd_s == id_ex_reg.rs2_s)) begin
+            forwardB = 2'b10;
+            b_out = forward_ex_mem_reg.rd_v;
+        end else if (forward_mem_wb_reg.regf_we && (forward_mem_wb_reg.rd_s != 0) && (forward_mem_wb_reg.rd_s == id_ex_reg.rs2_s)) begin
+            forwardB = 2'b01;
+            b_out = forward_mem_wb_reg.rd_v;
+            // check if load
+        end else begin
+            forwardB = '0;
+            b_out = b;
+        end
+
+        ex_mem_reg.rs1_v = a_out;
+        ex_mem_reg.rs2_v = b_out;
+        if (id_ex_reg.opcode == op_b_load) begin
+            ex_mem_reg.rs1_v = rs1_v;
+            ex_mem_reg.rs2_v = rs2_v;
+        end
+    end
 
     always_comb begin
         unique case (aluop)
@@ -70,15 +110,14 @@ import rv32i_types::*;
 
     always_comb begin
         ex_mem_reg.pc      = id_ex_reg.pc;
-        // ex_mem_reg.pc_next = id_ex_reg.pc_next;
         ex_mem_reg.inst    = id_ex_reg.inst;
         ex_mem_reg.rd_s    = id_ex_reg.rd_s;
 
         ex_mem_reg.funct3     = id_ex_reg.funct3;
         ex_mem_reg.opcode     = id_ex_reg.opcode;
         ex_mem_reg.imem_addr  = id_ex_reg.imem_addr;
-        ex_mem_reg.rs1_v      = rs1_v;
-        ex_mem_reg.rs2_v      = rs2_v;
+        // ex_mem_reg.rs1_v      = rs1_v;
+        // ex_mem_reg.rs2_v      = rs2_v;
 
         ex_mem_reg.bubble     = id_ex_reg.bubble;
     end
