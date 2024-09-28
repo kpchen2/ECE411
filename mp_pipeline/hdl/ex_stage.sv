@@ -44,10 +44,10 @@ import rv32i_types::*;
     assign rs1_s = id_ex_reg.rs1_s;
     assign rs2_s = id_ex_reg.rs2_s;
 
-    assign as =   signed'(a_out);
-    assign bs =   signed'(b_out);
-    assign au = unsigned'(a_out);
-    assign bu = unsigned'(b_out);
+    assign as =   signed'(a);
+    assign bs =   signed'(b);
+    assign au = unsigned'(a);
+    assign bu = unsigned'(b);
 
     always_comb begin
         if (forward_ex_mem_reg.regf_we && (forward_ex_mem_reg.rd_s != 0) && (forward_ex_mem_reg.rd_s == id_ex_reg.rs1_s)) begin
@@ -59,7 +59,7 @@ import rv32i_types::*;
             // check if load
         end else begin
             forwardA = '0;
-            a_out = a;
+            a_out = rs1_v;
         end
 
         if (forward_ex_mem_reg.regf_we && (forward_ex_mem_reg.rd_s != 0) && (forward_ex_mem_reg.rd_s == id_ex_reg.rs2_s)) begin
@@ -71,15 +71,11 @@ import rv32i_types::*;
             // check if load
         end else begin
             forwardB = '0;
-            b_out = b;
+            b_out = rs2_v;
         end
 
         ex_mem_reg.rs1_v = a_out;
         ex_mem_reg.rs2_v = b_out;
-        if (id_ex_reg.opcode == op_b_load) begin
-            ex_mem_reg.rs1_v = rs1_v;
-            ex_mem_reg.rs2_v = rs2_v;
-        end
     end
 
     always_comb begin
@@ -190,7 +186,7 @@ import rv32i_types::*;
             op_b_jalr: begin
                 ex_mem_reg.rd_v = id_ex_reg.pc + 'd4;
                 ex_mem_reg.regf_we = 1'b1;
-                ex_mem_reg.pc_next = (rs1_v + id_ex_reg.i_imm) & 32'hfffffffe;
+                ex_mem_reg.pc_next = (a_out + id_ex_reg.i_imm) & 32'hfffffffe;
                 ex_mem_reg.commit = 1'b1;
 
                 branch_select = '1;
@@ -200,8 +196,8 @@ import rv32i_types::*;
             end
             op_b_br: begin
                 cmpop = id_ex_reg.funct3;
-                a = rs1_v;
-                b = rs2_v;
+                a = a_out;
+                b = b_out;
                 if (br_en) begin
                     ex_mem_reg.pc_next = id_ex_reg.pc + id_ex_reg.b_imm;
 
@@ -213,7 +209,7 @@ import rv32i_types::*;
                 ex_mem_reg.commit = 1'b1;
             end
             op_b_load: begin
-                dmem_addr = rs1_v + id_ex_reg.i_imm;
+                dmem_addr = a_out + id_ex_reg.i_imm;
                 unique case (id_ex_reg.funct3)
                     load_f3_lb, load_f3_lbu: dmem_rmask = 4'b0001 << dmem_addr[1:0];
                     load_f3_lh, load_f3_lhu: dmem_rmask = 4'b0011 << dmem_addr[1:0];
@@ -241,7 +237,7 @@ import rv32i_types::*;
                 ex_mem_reg.rs2_s = '0;
             end
             op_b_store: begin
-                dmem_addr = rs1_v + id_ex_reg.s_imm;
+                dmem_addr = a_out + id_ex_reg.s_imm;
                 unique case (id_ex_reg.funct3)
                     store_f3_sb: dmem_wmask = 4'b0001 << dmem_addr[1:0];
                     store_f3_sh: dmem_wmask = 4'b0011 << dmem_addr[1:0];
@@ -249,9 +245,9 @@ import rv32i_types::*;
                     default    : dmem_wmask = 'x;
                 endcase
                 unique case (id_ex_reg.funct3)
-                    store_f3_sb: dmem_wdata[8 *dmem_addr[1:0] +: 8 ] = rs2_v[7 :0];
-                    store_f3_sh: dmem_wdata[16*dmem_addr[1]   +: 16] = rs2_v[15:0];
-                    store_f3_sw: dmem_wdata = rs2_v;
+                    store_f3_sb: dmem_wdata[8 *dmem_addr[1:0] +: 8 ] = b_out[7 :0];
+                    store_f3_sh: dmem_wdata[16*dmem_addr[1]   +: 16] = b_out[15:0];
+                    store_f3_sw: dmem_wdata = b_out;
                     default    : dmem_wdata = 'x;
                 endcase
                 // if (mem_resp) begin
@@ -265,7 +261,7 @@ import rv32i_types::*;
                 ex_mem_reg.req_dmem_resp = 1'b1;
             end
             op_b_imm: begin
-                a = rs1_v;
+                a = a_out;
                 b = id_ex_reg.i_imm;
                 unique case (id_ex_reg.funct3)
                     arith_f3_slt: begin
@@ -295,8 +291,8 @@ import rv32i_types::*;
                 ex_mem_reg.rs2_s = '0;
             end
             op_b_reg: begin
-                a = rs1_v;
-                b = rs2_v;
+                a = a_out;
+                b = b_out;
                 unique case (id_ex_reg.funct3)
                     arith_f3_slt: begin
                         cmpop = branch_f3_blt;
