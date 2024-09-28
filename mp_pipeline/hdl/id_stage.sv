@@ -10,7 +10,9 @@ import rv32i_types::*;
     input   logic   [31:0]  imem_rdata,
     input   logic           imem_resp,
 
-    output  logic           imem_halt
+    output  logic           imem_halt,
+
+    input   logic           flush
 );
 
     logic   [31:0]  inst;
@@ -41,6 +43,10 @@ import rv32i_types::*;
         id_ex_reg.pc        = if_id_reg.pc;
         id_ex_reg.pc_next   = if_id_reg.pc_next;
         id_ex_reg.imem_addr = if_id_reg.imem_addr;
+
+        if (flush == 1) begin
+            id_ex_reg = '0;
+        end
     end
 
 endmodule : id_stage

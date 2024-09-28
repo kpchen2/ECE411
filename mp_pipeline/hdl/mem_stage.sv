@@ -46,10 +46,6 @@ import rv32i_types::*;
         mem_wb_reg.commit = ex_mem_reg.commit;
         mem_wb_reg.regf_we = ex_mem_reg.regf_we;
 
-        // if (ex_mem_reg.opcode == op_b_store) begin
-
-        // end
-
         if (dmem_resp && ex_mem_reg.opcode == op_b_load) begin
             mem_wb_reg.regf_we = 1'b1;
             unique case (ex_mem_reg.funct3)

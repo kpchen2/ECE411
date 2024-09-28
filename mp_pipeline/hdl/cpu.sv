@@ -36,6 +36,8 @@ import rv32i_types::*;
     logic           branch_select;
     logic   [31:0]  branch_pc;
 
+    logic           flush_special;
+
     // dummy variables to kill warnings (cp1)
     logic           wb_worked;
 
@@ -53,6 +55,8 @@ import rv32i_types::*;
             ex_mem_reg.commit <= '0;
             mem_wb_reg.commit <= '0;
 
+            flush_special <= '0;
+
         end else begin
             if (halt) begin
                 if_id_reg  <= if_id_reg;
@@ -62,11 +66,11 @@ import rv32i_types::*;
                 pc <= pc;
                 order <= order;
             end else if (imem_halt) begin
-                if_id_reg  <= if_id_reg;
+                if_id_reg  <= branch_select ? '0 : if_id_reg;
                 id_ex_reg  <= branch_select ? '0 : id_ex_reg_next;
                 ex_mem_reg <= ex_mem_reg_next;
                 mem_wb_reg <= mem_wb_reg_next;
-                pc <= pc;
+                pc <= branch_select ? branch_pc : pc;
                 order <= increment ? order + 64'b1 : order;
             end else begin
                 if_id_reg  <= branch_select ? '0 : if_id_reg_next;
@@ -75,6 +79,8 @@ import rv32i_types::*;
                 mem_wb_reg <= mem_wb_reg_next;
                 pc <= branch_select ? branch_pc : pc_next;
                 order <= increment ? order + 64'b1 : order;
+
+                flush_special <= branch_select ? '1 : '0;
             end
         end
     end
@@ -101,7 +107,9 @@ import rv32i_types::*;
         .imem_rdata(imem_rdata),
         .imem_resp(imem_resp),
 
-        .imem_halt(imem_halt)
+        .imem_halt(imem_halt),
+
+        .flush(flush_special)
     );
 
     regfile regfile_i (
