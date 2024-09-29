@@ -19,6 +19,7 @@ package rv32i_types;
         logic   [31:0]      imem_addr;
 
         logic               req_imem_resp;
+        logic               bubble;
     } if_id_reg_t;
 
     typedef struct packed {

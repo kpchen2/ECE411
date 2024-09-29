@@ -18,7 +18,7 @@ import rv32i_types::*;
     logic   [31:0]  inst;
     
     always_comb begin
-        id_ex_reg.bubble = 1'b0;
+        id_ex_reg.bubble = if_id_reg.bubble;
         imem_halt = 1'b0;
 
         if (if_id_reg.req_imem_resp && imem_resp == 1'b0) begin

@@ -31,10 +31,15 @@ import rv32i_types::*;
 
     logic           imem_halt;
     logic           halt;
+    logic           load_halt;
 
     logic           branch_select;
     logic   [31:0]  branch_pc;
     logic           flush_special;
+    logic           has_branch;
+    logic   [31:0]  has_pc;
+
+    logic           override_halt;
 
     // dummy variables to kill warnings (cp1)
     logic           wb_worked;
@@ -54,8 +59,13 @@ import rv32i_types::*;
             mem_wb_reg.commit <= '0;
 
             flush_special <= '0;
+            has_branch <= '0;
+            has_pc <= '0;
+
+            override_halt <= '0;
 
         end else begin
+            override_halt <= '0;
             if (halt) begin
                 if_id_reg  <= if_id_reg;
                 id_ex_reg  <= id_ex_reg;
@@ -63,12 +73,34 @@ import rv32i_types::*;
                 mem_wb_reg <= mem_wb_reg;
                 pc <= pc;
                 order <= order;
+            end else if (load_halt) begin
+                if_id_reg  <= if_id_reg;
+                id_ex_reg  <= id_ex_reg;
+                ex_mem_reg.bubble <= '1;
+                override_halt <= dmem_resp ? '1 : override_halt;
+                mem_wb_reg <= mem_wb_reg_next;
+                pc <= pc;
+                order <= increment ? order + 64'b1 : order;
             end else if (imem_halt) begin
-                if_id_reg  <= branch_select ? '0 : if_id_reg;
-                id_ex_reg  <= branch_select ? '0 : id_ex_reg_next;
+                has_branch <= branch_select ? '1 : has_branch;
+                has_pc <= branch_select ? branch_pc : has_pc;
+                if_id_reg  <= if_id_reg;
+                id_ex_reg  <= id_ex_reg_next;
                 ex_mem_reg <= ex_mem_reg_next;
                 mem_wb_reg <= mem_wb_reg_next;
-                pc <= branch_select ? branch_pc : pc;
+                pc <= pc;
+                order <= increment ? order + 64'b1 : order;
+            end else if (has_branch) begin
+                has_branch <= '0;
+
+                if_id_reg  <= '0;
+                if_id_reg.req_imem_resp <= '1;
+                if_id_reg.bubble <= '1;
+                id_ex_reg  <= '0;
+                id_ex_reg.bubble <= '1;
+                ex_mem_reg <= ex_mem_reg_next;
+                mem_wb_reg <= mem_wb_reg_next;
+                pc <= has_pc;
                 order <= increment ? order + 64'b1 : order;
             end else begin
                 if_id_reg  <= branch_select ? '0 : if_id_reg_next;
@@ -92,7 +124,9 @@ import rv32i_types::*;
         .if_id_reg(if_id_reg_next),
 
         .imem_addr(imem_addr),
-        .imem_rmask(imem_rmask)
+        .imem_rmask(imem_rmask),
+        .halt(halt),
+        .load_halt(load_halt)
     );
 
     id_stage id_stage_i (
@@ -150,6 +184,7 @@ import rv32i_types::*;
         // .clk(clk),
         .rst(rst),
 
+        .forward_id_ex_reg(id_ex_reg),
         .ex_mem_reg(ex_mem_reg),
         .mem_wb_reg(mem_wb_reg_next),
 
@@ -159,7 +194,9 @@ import rv32i_types::*;
         .dmem_rdata(dmem_rdata),
         .dmem_resp(dmem_resp),
 
-        .halt(halt)
+        .halt(halt),
+        .load_halt(load_halt),
+        .override_halt(override_halt)
     );
 
     wb_stage wb_stage_i (

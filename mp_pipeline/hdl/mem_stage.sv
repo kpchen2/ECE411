@@ -4,6 +4,7 @@ import rv32i_types::*;
     // input   logic           clk,
     input   logic           rst,
 
+    input   id_ex_reg_t     forward_id_ex_reg,
     input   ex_mem_reg_t    ex_mem_reg,
     output  mem_wb_reg_t    mem_wb_reg,
 
@@ -13,7 +14,9 @@ import rv32i_types::*;
     input   logic   [31:0]  dmem_rdata,
     input   logic           dmem_resp,
 
-    output  logic           halt
+    output  logic           halt,
+    output  logic           load_halt,
+    input   logic           override_halt
 );
 
     always_comb begin
@@ -42,6 +45,7 @@ import rv32i_types::*;
             mem_wb_reg.commit = 1'b0;
         end
         
+        load_halt = '0;
         mem_wb_reg.rd_v = ex_mem_reg.rd_v;
         mem_wb_reg.commit = ex_mem_reg.commit;
         mem_wb_reg.regf_we = ex_mem_reg.regf_we;
@@ -59,6 +63,11 @@ import rv32i_types::*;
                 endcase
                 mem_wb_reg.commit = 1'b1;
                 increment = '1;
+
+                if (forward_id_ex_reg.rs1_s == ex_mem_reg.rd_s || forward_id_ex_reg.rs2_s == ex_mem_reg.rd_s) begin
+                    load_halt = '1;
+                end
+
             end else if (dmem_resp && ex_mem_reg.opcode == op_b_store) begin
                 mem_wb_reg.commit = 1'b1;
                 increment = '1;
@@ -73,7 +82,7 @@ import rv32i_types::*;
         end 
 
         halt = 1'b0;
-        if (ex_mem_reg.req_dmem_resp && dmem_resp == 1'b0) begin
+        if (ex_mem_reg.req_dmem_resp && dmem_resp == 1'b0 && override_halt == 0) begin
             halt = 1'b1;
         end
     end

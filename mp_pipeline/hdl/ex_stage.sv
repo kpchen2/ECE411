@@ -56,7 +56,6 @@ import rv32i_types::*;
         end else if (forward_mem_wb_reg.regf_we && (forward_mem_wb_reg.rd_s != 0) && (forward_mem_wb_reg.rd_s == id_ex_reg.rs1_s)) begin
             forwardA = 2'b01;
             a_out = forward_mem_wb_reg.rd_v;
-            // check if load
         end else begin
             forwardA = '0;
             a_out = rs1_v;
@@ -68,7 +67,6 @@ import rv32i_types::*;
         end else if (forward_mem_wb_reg.regf_we && (forward_mem_wb_reg.rd_s != 0) && (forward_mem_wb_reg.rd_s == id_ex_reg.rs2_s)) begin
             forwardB = 2'b01;
             b_out = forward_mem_wb_reg.rd_v;
-            // check if load
         end else begin
             forwardB = '0;
             b_out = rs2_v;
@@ -112,24 +110,11 @@ import rv32i_types::*;
         ex_mem_reg.funct3     = id_ex_reg.funct3;
         ex_mem_reg.opcode     = id_ex_reg.opcode;
         ex_mem_reg.imem_addr  = id_ex_reg.imem_addr;
-        // ex_mem_reg.rs1_v      = rs1_v;
-        // ex_mem_reg.rs2_v      = rs2_v;
 
         ex_mem_reg.bubble     = id_ex_reg.bubble;
     end
 
     always_comb begin
-        // state_next = state;
-        // commit     = 1'b0;
-        // pc_next    = pc;
-        // mem_addr   = 'x;
-        // mem_rmask  = '0;
-        // mem_wmask  = '0;
-        // mem_wdata  = 'x;
-        // rd_v       = 'x;
-        // load_ir    = 1'b0;
-        // regf_we    = 1'b0;
-
         dmem_addr  = '0;
         dmem_rmask = '0;
         dmem_wmask = '0;
