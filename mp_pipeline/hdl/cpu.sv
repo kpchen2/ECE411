@@ -36,8 +36,6 @@ import rv32i_types::*;
     logic           branch_select;
     logic   [31:0]  branch_pc;
     logic           flush_special;
-    logic           has_branch;
-    logic   [31:0]  has_pc;
 
     logic           override_halt;
 
@@ -59,8 +57,6 @@ import rv32i_types::*;
             mem_wb_reg.commit <= '0;
 
             flush_special <= '0;
-            has_branch <= '0;
-            has_pc <= '0;
 
             override_halt <= '0;
 
@@ -82,28 +78,19 @@ import rv32i_types::*;
                 pc <= pc;
                 order <= increment ? order + 64'b1 : order;
             end else if (imem_halt) begin
-                has_branch <= branch_select ? '1 : has_branch;
-                has_pc <= branch_select ? branch_pc : has_pc;
-                if_id_reg  <= if_id_reg;
+                if_id_reg.bubble  <= branch_select ? '1 : if_id_reg.bubble;
+                if_id_reg.req_imem_resp <= branch_select ? '1 : if_id_reg.req_imem_resp;
                 id_ex_reg  <= id_ex_reg_next;
+                id_ex_reg.bubble  <= branch_select ? '1 : id_ex_reg_next.bubble;
                 ex_mem_reg <= ex_mem_reg_next;
                 mem_wb_reg <= mem_wb_reg_next;
-                pc <= pc;
+                pc <= branch_select ? branch_pc : pc;
                 order <= increment ? order + 64'b1 : order;
-            end else if (has_branch) begin
-                has_branch <= '0;
 
-                if_id_reg  <= '0;
-                if_id_reg.req_imem_resp <= '1;
-                if_id_reg.bubble <= '1;
-                id_ex_reg  <= '0;
-                id_ex_reg.bubble <= '1;
-                ex_mem_reg <= ex_mem_reg_next;
-                mem_wb_reg <= mem_wb_reg_next;
-                pc <= has_pc;
-                order <= increment ? order + 64'b1 : order;
+                flush_special <= branch_select ? '1 : '0;
             end else begin
                 if_id_reg  <= branch_select ? '0 : if_id_reg_next;
+                if_id_reg.req_imem_resp <= branch_select ? '1 : if_id_reg_next.req_imem_resp;
                 id_ex_reg  <= branch_select ? '0 : id_ex_reg_next;
                 ex_mem_reg <= ex_mem_reg_next;
                 mem_wb_reg <= mem_wb_reg_next;
