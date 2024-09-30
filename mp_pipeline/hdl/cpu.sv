@@ -90,8 +90,10 @@ import rv32i_types::*;
                 flush_special <= branch_select ? '1 : '0;
             end else begin
                 if_id_reg  <= branch_select ? '0 : if_id_reg_next;
+                if_id_reg.bubble  <= branch_select ? '1 : if_id_reg_next.bubble;
                 if_id_reg.req_imem_resp <= branch_select ? '1 : if_id_reg_next.req_imem_resp;
                 id_ex_reg  <= branch_select ? '0 : id_ex_reg_next;
+                id_ex_reg.bubble  <= branch_select ? '1 : id_ex_reg_next.bubble;
                 ex_mem_reg <= ex_mem_reg_next;
                 mem_wb_reg <= mem_wb_reg_next;
                 pc <= branch_select ? branch_pc : pc_next;

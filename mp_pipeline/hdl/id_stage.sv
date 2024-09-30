@@ -46,6 +46,7 @@ import rv32i_types::*;
 
         if (flush == 1) begin
             id_ex_reg = '0;
+            id_ex_reg.bubble = '1;
         end
     end
 
