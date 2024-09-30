@@ -12,8 +12,8 @@ import rv32i_types::*;
     input   logic   [31:0]  rs1_v,
     input   logic   [31:0]  rs2_v,
 
-    output  logic   [4:0]   rs1_s,
-    output  logic   [4:0]   rs2_s,
+    // output  logic   [4:0]   rs1_s,
+    // output  logic   [4:0]   rs2_s,
 
     output  logic   [31:0]  dmem_addr,
     output  logic   [3:0]   dmem_rmask,
@@ -39,11 +39,8 @@ import rv32i_types::*;
     logic                 br_en;
     logic          [2:0]  cmpop;
 
-    logic          [1:0]  forwardA;
-    logic          [1:0]  forwardB;
-
-    assign rs1_s = id_ex_reg.rs1_s;
-    assign rs2_s = id_ex_reg.rs2_s;
+    // assign rs1_s = id_ex_reg.rs1_s;
+    // assign rs2_s = id_ex_reg.rs2_s;
 
     assign as =   signed'(a);
     assign bs =   signed'(b);
@@ -52,24 +49,18 @@ import rv32i_types::*;
 
     always_comb begin
         if (forward_ex_mem_reg.regf_we && (forward_ex_mem_reg.rd_s != 0) && (forward_ex_mem_reg.rd_s == id_ex_reg.rs1_s)) begin
-            forwardA = 2'b10;
             a_out = forward_ex_mem_reg.rd_v;
         end else if (forward_mem_wb_reg.regf_we && (forward_mem_wb_reg.rd_s != 0) && (forward_mem_wb_reg.rd_s == id_ex_reg.rs1_s)) begin
-            forwardA = 2'b01;
             a_out = forward_mem_wb_reg.rd_v;
         end else begin
-            forwardA = '0;
             a_out = rs1_v;
         end
 
         if (forward_ex_mem_reg.regf_we && (forward_ex_mem_reg.rd_s != 0) && (forward_ex_mem_reg.rd_s == id_ex_reg.rs2_s)) begin
-            forwardB = 2'b10;
             b_out = forward_ex_mem_reg.rd_v;
         end else if (forward_mem_wb_reg.regf_we && (forward_mem_wb_reg.rd_s != 0) && (forward_mem_wb_reg.rd_s == id_ex_reg.rs2_s)) begin
-            forwardB = 2'b01;
             b_out = forward_mem_wb_reg.rd_v;
         end else begin
-            forwardB = '0;
             b_out = rs2_v;
         end
 
@@ -297,18 +288,10 @@ import rv32i_types::*;
             endcase
         end
 
-        if (dmem_addr == '0) begin
-            dmem_rmask = '0;
-        end
-
         ex_mem_reg.dmem_addr  = dmem_addr;
         ex_mem_reg.dmem_rmask = dmem_rmask;
         ex_mem_reg.dmem_wmask = dmem_wmask;
         ex_mem_reg.dmem_wdata = dmem_wdata;
-
-        // if (rst == 1) begin
-        //     ex_mem_reg.commit = 1'b0;
-        // end
     end
 
 endmodule : ex_stage

@@ -144,8 +144,8 @@ import rv32i_types::*;
 
         .regf_we(mem_wb_reg.regf_we),
         .rd_v(mem_wb_reg.rd_v),
-        .rs1_s(rs1_s),
-        .rs2_s(rs2_s),
+        .rs1_s(id_ex_reg.rs1_s),
+        .rs2_s(id_ex_reg.rs2_s),
         .rd_s(mem_wb_reg.rd_s),
         .rs1_v(rs1_v),
         .rs2_v(rs2_v)
@@ -163,8 +163,8 @@ import rv32i_types::*;
         .rs1_v(rs1_v),
         .rs2_v(rs2_v),
 
-        .rs1_s(rs1_s),
-        .rs2_s(rs2_s),
+        // .rs1_s(rs1_s),
+        // .rs2_s(rs2_s),
 
         .dmem_addr(dmem_addr),
         .dmem_rmask(dmem_rmask),
