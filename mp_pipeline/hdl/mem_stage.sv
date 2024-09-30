@@ -16,7 +16,9 @@ import rv32i_types::*;
 
     output  logic           halt,
     output  logic           load_halt,
-    input   logic           override_halt
+    input   logic           override_halt,
+    input   logic   [63:0]  prev_commited_order,
+    output  logic   [63:0]  commited_order
 );
 
     always_comb begin
@@ -80,6 +82,15 @@ import rv32i_types::*;
             increment = '0;
             mem_wb_reg.commit = '0;
         end 
+
+        commited_order <= 'x;
+        if (mem_wb_reg.commit) begin
+            commited_order <= order;
+        end
+
+        if (prev_commited_order == order) begin
+            mem_wb_reg.commit = '0;
+        end
 
         halt = 1'b0;
         if (ex_mem_reg.req_dmem_resp && dmem_resp == 1'b0 && override_halt == 0) begin

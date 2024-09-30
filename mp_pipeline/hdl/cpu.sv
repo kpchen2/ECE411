@@ -32,12 +32,14 @@ import rv32i_types::*;
     logic           imem_halt;
     logic           halt;
     logic           load_halt;
+    logic           override_halt;
 
     logic           branch_select;
     logic   [31:0]  branch_pc;
     logic           flush_special;
 
-    logic           override_halt;
+    logic   [63:0]  prev_commited_order;
+    logic   [63:0]  commited_order;
 
     // dummy variables to kill warnings (cp1)
     logic           wb_worked;
@@ -57,47 +59,50 @@ import rv32i_types::*;
             mem_wb_reg.commit <= '0;
 
             flush_special <= '0;
-
             override_halt <= '0;
 
         end else begin
             override_halt <= '0;
+            prev_commited_order <= commited_order;
+
             if (halt) begin
                 if_id_reg  <= if_id_reg;
                 id_ex_reg  <= id_ex_reg;
                 ex_mem_reg <= ex_mem_reg;
-                mem_wb_reg <= mem_wb_reg;
+                mem_wb_reg <= mem_wb_reg_next;
+
+                // mem_wb_reg.commit <= '0;
                 pc <= pc;
                 order <= order;
             end else if (load_halt) begin
-                if_id_reg  <= if_id_reg;
-                id_ex_reg  <= id_ex_reg;
+                if_id_reg         <= if_id_reg;
+                id_ex_reg         <= id_ex_reg;
                 ex_mem_reg.bubble <= '1;
-                override_halt <= dmem_resp ? '1 : override_halt;
-                mem_wb_reg <= mem_wb_reg_next;
-                pc <= pc;
+                override_halt     <= dmem_resp ? '1 : override_halt;
+                mem_wb_reg        <= mem_wb_reg_next;
+                pc                <= pc;
                 order <= increment ? order + 64'b1 : order;
             end else if (imem_halt) begin
-                if_id_reg.bubble  <= branch_select ? '1 : if_id_reg.bubble;
+                if_id_reg.bubble        <= branch_select ? '1 : if_id_reg.bubble;
                 if_id_reg.req_imem_resp <= branch_select ? '1 : if_id_reg.req_imem_resp;
-                id_ex_reg  <= id_ex_reg_next;
-                id_ex_reg.bubble  <= branch_select ? '1 : id_ex_reg_next.bubble;
-                ex_mem_reg <= ex_mem_reg_next;
-                mem_wb_reg <= mem_wb_reg_next;
-                pc <= branch_select ? branch_pc : pc;
-                order <= increment ? order + 64'b1 : order;
+                id_ex_reg               <= id_ex_reg_next;
+                id_ex_reg.bubble        <= branch_select ? '1 : id_ex_reg_next.bubble;
+                ex_mem_reg              <= ex_mem_reg_next;
+                mem_wb_reg              <= mem_wb_reg_next;
+                pc                      <= branch_select ? branch_pc : pc;
+                order                   <= increment     ? order + 64'b1 : order;
 
                 flush_special <= branch_select ? '1 : '0;
             end else begin
-                if_id_reg  <= branch_select ? '0 : if_id_reg_next;
-                if_id_reg.bubble  <= branch_select ? '1 : if_id_reg_next.bubble;
+                if_id_reg               <= branch_select ? '0 : if_id_reg_next;
+                if_id_reg.bubble        <= branch_select ? '1 : if_id_reg_next.bubble;
                 if_id_reg.req_imem_resp <= branch_select ? '1 : if_id_reg_next.req_imem_resp;
-                id_ex_reg  <= branch_select ? '0 : id_ex_reg_next;
-                id_ex_reg.bubble  <= branch_select ? '1 : id_ex_reg_next.bubble;
-                ex_mem_reg <= ex_mem_reg_next;
-                mem_wb_reg <= mem_wb_reg_next;
-                pc <= branch_select ? branch_pc : pc_next;
-                order <= increment ? order + 64'b1 : order;
+                id_ex_reg               <= branch_select ? '0 : id_ex_reg_next;
+                id_ex_reg.bubble        <= branch_select ? '1 : id_ex_reg_next.bubble;
+                ex_mem_reg              <= ex_mem_reg_next;
+                mem_wb_reg              <= mem_wb_reg_next;
+                pc                      <= branch_select ? branch_pc : pc_next;
+                order                   <= increment     ? order + 64'b1 : order;
 
                 flush_special <= branch_select ? '1 : '0;
             end
@@ -166,7 +171,8 @@ import rv32i_types::*;
         .dmem_wmask(dmem_wmask),
         .dmem_wdata(dmem_wdata),
         .branch_select(branch_select),
-        .branch_pc(branch_pc)
+        .branch_pc(branch_pc),
+        .load_halt(load_halt)
     );
 
     mem_stage mem_stage_i (
@@ -185,7 +191,10 @@ import rv32i_types::*;
 
         .halt(halt),
         .load_halt(load_halt),
-        .override_halt(override_halt)
+        .override_halt(override_halt),
+
+        .prev_commited_order(prev_commited_order),
+        .commited_order(commited_order)
     );
 
     wb_stage wb_stage_i (

@@ -21,7 +21,8 @@ import rv32i_types::*;
     output  logic   [31:0]  dmem_wdata,
 
     output  logic           branch_select,
-    output  logic   [31:0]  branch_pc
+    output  logic   [31:0]  branch_pc,
+    input   logic           load_halt
 );
 
     logic          [31:0] a;
@@ -139,188 +140,166 @@ import rv32i_types::*;
         branch_select = '0;
         branch_pc = '0;
 
-        case (id_ex_reg.opcode)
-            op_b_lui: begin
-                ex_mem_reg.rd_v = id_ex_reg.u_imm;
-                ex_mem_reg.regf_we = 1'b1;
-                ex_mem_reg.commit = 1'b1;
+        if (id_ex_reg.bubble != 1 && load_halt != 1) begin
+            case (id_ex_reg.opcode)
+                op_b_lui: begin
+                    ex_mem_reg.rd_v = id_ex_reg.u_imm;
+                    ex_mem_reg.regf_we = 1'b1;
+                    ex_mem_reg.commit = 1'b1;
 
-                ex_mem_reg.rs1_s = '0;
-                ex_mem_reg.rs2_s = '0;
-            end
-            op_b_auipc: begin
-                ex_mem_reg.rd_v = id_ex_reg.pc + id_ex_reg.u_imm;
-                ex_mem_reg.regf_we = 1'b1;
-                ex_mem_reg.commit = 1'b1;
+                    ex_mem_reg.rs1_s = '0;
+                    ex_mem_reg.rs2_s = '0;
+                end
+                op_b_auipc: begin
+                    ex_mem_reg.rd_v = id_ex_reg.pc + id_ex_reg.u_imm;
+                    ex_mem_reg.regf_we = 1'b1;
+                    ex_mem_reg.commit = 1'b1;
 
-                ex_mem_reg.rs1_s = '0;
-                ex_mem_reg.rs2_s = '0;
-            end
-            op_b_jal: begin
-                ex_mem_reg.rd_v = id_ex_reg.pc + 'd4;
-                ex_mem_reg.regf_we = 1'b1;
-                ex_mem_reg.pc_next = id_ex_reg.pc + id_ex_reg.j_imm;
-                ex_mem_reg.commit = 1'b1;
-
-                branch_select = '1;
-                branch_pc = ex_mem_reg.pc_next;
-
-                ex_mem_reg.rs1_s = '0;
-                ex_mem_reg.rs2_s = '0;
-            end
-            op_b_jalr: begin
-                ex_mem_reg.rd_v = id_ex_reg.pc + 'd4;
-                ex_mem_reg.regf_we = 1'b1;
-                ex_mem_reg.pc_next = (a_out + id_ex_reg.i_imm) & 32'hfffffffe;
-                ex_mem_reg.commit = 1'b1;
-
-                branch_select = '1;
-                branch_pc = ex_mem_reg.pc_next;
-
-                ex_mem_reg.rs2_s = '0;
-            end
-            op_b_br: begin
-                cmpop = id_ex_reg.funct3;
-                a = a_out;
-                b = b_out;
-                if (br_en) begin
-                    ex_mem_reg.pc_next = id_ex_reg.pc + id_ex_reg.b_imm;
+                    ex_mem_reg.rs1_s = '0;
+                    ex_mem_reg.rs2_s = '0;
+                end
+                op_b_jal: begin
+                    ex_mem_reg.rd_v = id_ex_reg.pc + 'd4;
+                    ex_mem_reg.regf_we = 1'b1;
+                    ex_mem_reg.pc_next = id_ex_reg.pc + id_ex_reg.j_imm;
+                    ex_mem_reg.commit = 1'b1;
 
                     branch_select = '1;
                     branch_pc = ex_mem_reg.pc_next;
-                end else begin
-                    ex_mem_reg.pc_next = id_ex_reg.pc + 'd4;
+
+                    ex_mem_reg.rs1_s = '0;
+                    ex_mem_reg.rs2_s = '0;
                 end
-                ex_mem_reg.commit = 1'b1;
-            end
-            op_b_load: begin
-                dmem_addr = a_out + id_ex_reg.i_imm;
-                unique case (id_ex_reg.funct3)
-                    load_f3_lb, load_f3_lbu: dmem_rmask = 4'b0001 << dmem_addr[1:0];
-                    load_f3_lh, load_f3_lhu: dmem_rmask = 4'b0011 << dmem_addr[1:0];
-                    load_f3_lw             : dmem_rmask = 4'b1111;
-                    default                : dmem_rmask = 'x;
-                endcase
-                // if (mem_resp) begin
-                //     regf_we = 1'b1;
-                //     unique case (funct3)
-                //         load_f3_lb : rd_v = {{24{mem_rdata[7 +8 *mem_addr[1:0]]}}, mem_rdata[8 *mem_addr[1:0] +: 8 ]};
-                //         load_f3_lbu: rd_v = {{24{1'b0}}                          , mem_rdata[8 *mem_addr[1:0] +: 8 ]};
-                //         load_f3_lh : rd_v = {{16{mem_rdata[15+16*mem_addr[1]  ]}}, mem_rdata[16*mem_addr[1]   +: 16]};
-                //         load_f3_lhu: rd_v = {{16{1'b0}}                          , mem_rdata[16*mem_addr[1]   +: 16]};
-                //         load_f3_lw : rd_v = mem_rdata;
-                //         default    : rd_v = 'x;
-                //     endcase
-                //     pc_next = pc + 'd4;
-                //     commit = 1'b1;
-                //     state_next = s_fetch;
-                // end
-                ex_mem_reg.dmem_shift_bits = dmem_addr[1:0];
-                dmem_addr[1:0] = 2'd0;
+                op_b_jalr: begin
+                    ex_mem_reg.rd_v = id_ex_reg.pc + 'd4;
+                    ex_mem_reg.regf_we = 1'b1;
+                    ex_mem_reg.pc_next = (a_out + id_ex_reg.i_imm) & 32'hfffffffe;
+                    ex_mem_reg.commit = 1'b1;
 
-                ex_mem_reg.req_dmem_resp = 1'b1;
-                ex_mem_reg.rs2_s = '0;
-            end
-            op_b_store: begin
-                dmem_addr = a_out + id_ex_reg.s_imm;
-                unique case (id_ex_reg.funct3)
-                    store_f3_sb: dmem_wmask = 4'b0001 << dmem_addr[1:0];
-                    store_f3_sh: dmem_wmask = 4'b0011 << dmem_addr[1:0];
-                    store_f3_sw: dmem_wmask = 4'b1111;
-                    default    : dmem_wmask = 'x;
-                endcase
-                unique case (id_ex_reg.funct3)
-                    store_f3_sb: dmem_wdata[8 *dmem_addr[1:0] +: 8 ] = b_out[7 :0];
-                    store_f3_sh: dmem_wdata[16*dmem_addr[1]   +: 16] = b_out[15:0];
-                    store_f3_sw: dmem_wdata = b_out;
-                    default    : dmem_wdata = 'x;
-                endcase
-                // if (mem_resp) begin
-                //     pc_next = pc + 'd4;
-                //     commit = 1'b1;
-                //     state_next = s_fetch;
-                // end
-                ex_mem_reg.dmem_shift_bits = dmem_addr[1:0];
-                dmem_addr[1:0] = 2'd0;
+                    branch_select = '1;
+                    branch_pc = ex_mem_reg.pc_next;
 
-                ex_mem_reg.req_dmem_resp = 1'b1;
-            end
-            op_b_imm: begin
-                a = a_out;
-                b = id_ex_reg.i_imm;
-                unique case (id_ex_reg.funct3)
-                    arith_f3_slt: begin
-                        cmpop = branch_f3_blt;
-                        ex_mem_reg.rd_v = {31'd0, br_en};
-                    end
-                    arith_f3_sltu: begin
-                        cmpop = branch_f3_bltu;
-                        ex_mem_reg.rd_v = {31'd0, br_en};
-                    end
-                    arith_f3_sr: begin
-                        if (id_ex_reg.funct7[5]) begin
-                            aluop = alu_op_sra;
-                        end else begin
-                            aluop = alu_op_srl;
-                        end
-                        ex_mem_reg.rd_v = aluout;
-                    end
-                    default: begin
-                        aluop = id_ex_reg.funct3;
-                        ex_mem_reg.rd_v = aluout;
-                    end
-                endcase
-                ex_mem_reg.regf_we = 1'b1;
-                ex_mem_reg.commit = 1'b1;
+                    ex_mem_reg.rs2_s = '0;
+                end
+                op_b_br: begin
+                    cmpop = id_ex_reg.funct3;
+                    a = a_out;
+                    b = b_out;
+                    if (br_en) begin
+                        ex_mem_reg.pc_next = id_ex_reg.pc + id_ex_reg.b_imm;
 
-                ex_mem_reg.rs2_s = '0;
-            end
-            op_b_reg: begin
-                a = a_out;
-                b = b_out;
-                unique case (id_ex_reg.funct3)
-                    arith_f3_slt: begin
-                        cmpop = branch_f3_blt;
-                        ex_mem_reg.rd_v = {31'd0, br_en};
+                        branch_select = '1;
+                        branch_pc = ex_mem_reg.pc_next;
+                    end else begin
+                        ex_mem_reg.pc_next = id_ex_reg.pc + 'd4;
                     end
-                    arith_f3_sltu: begin
-                        cmpop = branch_f3_bltu;
-                        ex_mem_reg.rd_v = {31'd0, br_en};
-                    end
-                    arith_f3_sr: begin
-                        if (id_ex_reg.funct7[5]) begin
-                            aluop = alu_op_sra;
-                        end else begin
-                            aluop = alu_op_srl;
+                    ex_mem_reg.commit = 1'b1;
+                end
+                op_b_load: begin
+                    dmem_addr = a_out + id_ex_reg.i_imm;
+                    unique case (id_ex_reg.funct3)
+                        load_f3_lb, load_f3_lbu: dmem_rmask = 4'b0001 << dmem_addr[1:0];
+                        load_f3_lh, load_f3_lhu: dmem_rmask = 4'b0011 << dmem_addr[1:0];
+                        load_f3_lw             : dmem_rmask = 4'b1111;
+                        default                : dmem_rmask = 'x;
+                    endcase
+                    ex_mem_reg.dmem_shift_bits = dmem_addr[1:0];
+                    dmem_addr[1:0] = 2'd0;
+
+                    ex_mem_reg.req_dmem_resp = 1'b1;
+                    ex_mem_reg.rs2_s = '0;
+                end
+                op_b_store: begin
+                    dmem_addr = a_out + id_ex_reg.s_imm;
+                    unique case (id_ex_reg.funct3)
+                        store_f3_sb: dmem_wmask = 4'b0001 << dmem_addr[1:0];
+                        store_f3_sh: dmem_wmask = 4'b0011 << dmem_addr[1:0];
+                        store_f3_sw: dmem_wmask = 4'b1111;
+                        default    : dmem_wmask = 'x;
+                    endcase
+                    unique case (id_ex_reg.funct3)
+                        store_f3_sb: dmem_wdata[8 *dmem_addr[1:0] +: 8 ] = b_out[7 :0];
+                        store_f3_sh: dmem_wdata[16*dmem_addr[1]   +: 16] = b_out[15:0];
+                        store_f3_sw: dmem_wdata = b_out;
+                        default    : dmem_wdata = 'x;
+                    endcase
+                    ex_mem_reg.dmem_shift_bits = dmem_addr[1:0];
+                    dmem_addr[1:0] = 2'd0;
+
+                    ex_mem_reg.req_dmem_resp = 1'b1;
+                end
+                op_b_imm: begin
+                    a = a_out;
+                    b = id_ex_reg.i_imm;
+                    unique case (id_ex_reg.funct3)
+                        arith_f3_slt: begin
+                            cmpop = branch_f3_blt;
+                            ex_mem_reg.rd_v = {31'd0, br_en};
                         end
-                        ex_mem_reg.rd_v = aluout;
-                    end
-                    arith_f3_add: begin
-                        if (id_ex_reg.funct7[5]) begin
-                            aluop = alu_op_sub;
-                        end else begin
-                            aluop = alu_op_add;
+                        arith_f3_sltu: begin
+                            cmpop = branch_f3_bltu;
+                            ex_mem_reg.rd_v = {31'd0, br_en};
                         end
-                        ex_mem_reg.rd_v = aluout;
-                    end
-                    default: begin
-                        aluop = id_ex_reg.funct3;
-                        ex_mem_reg.rd_v = aluout;
-                    end
-                endcase
-                ex_mem_reg.regf_we = 1'b1;
-                ex_mem_reg.commit = 1'b1;
-            end
-            // default: begin
-                // ex_mem_reg.rd_v = '0;
-                // ex_mem_reg.regf_we = '0;
-                // ex_mem_reg.commit = '0;
-                // a = '0;
-                // b = '0;
-                // aluop = '0;
-                // cmpop = '0;
-            // end
-        endcase
+                        arith_f3_sr: begin
+                            if (id_ex_reg.funct7[5]) begin
+                                aluop = alu_op_sra;
+                            end else begin
+                                aluop = alu_op_srl;
+                            end
+                            ex_mem_reg.rd_v = aluout;
+                        end
+                        default: begin
+                            aluop = id_ex_reg.funct3;
+                            ex_mem_reg.rd_v = aluout;
+                        end
+                    endcase
+                    ex_mem_reg.regf_we = 1'b1;
+                    ex_mem_reg.commit = 1'b1;
+
+                    ex_mem_reg.rs2_s = '0;
+                end
+                op_b_reg: begin
+                    a = a_out;
+                    b = b_out;
+                    unique case (id_ex_reg.funct3)
+                        arith_f3_slt: begin
+                            cmpop = branch_f3_blt;
+                            ex_mem_reg.rd_v = {31'd0, br_en};
+                        end
+                        arith_f3_sltu: begin
+                            cmpop = branch_f3_bltu;
+                            ex_mem_reg.rd_v = {31'd0, br_en};
+                        end
+                        arith_f3_sr: begin
+                            if (id_ex_reg.funct7[5]) begin
+                                aluop = alu_op_sra;
+                            end else begin
+                                aluop = alu_op_srl;
+                            end
+                            ex_mem_reg.rd_v = aluout;
+                        end
+                        arith_f3_add: begin
+                            if (id_ex_reg.funct7[5]) begin
+                                aluop = alu_op_sub;
+                            end else begin
+                                aluop = alu_op_add;
+                            end
+                            ex_mem_reg.rd_v = aluout;
+                        end
+                        default: begin
+                            aluop = id_ex_reg.funct3;
+                            ex_mem_reg.rd_v = aluout;
+                        end
+                    endcase
+                    ex_mem_reg.regf_we = 1'b1;
+                    ex_mem_reg.commit = 1'b1;
+                end
+            endcase
+        end
+
+        if (dmem_addr == '0) begin
+            dmem_rmask = '0;
+        end
 
         ex_mem_reg.dmem_addr  = dmem_addr;
         ex_mem_reg.dmem_rmask = dmem_rmask;
