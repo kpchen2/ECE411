@@ -12,9 +12,6 @@ import rv32i_types::*;
     input   logic   [31:0]  rs1_v,
     input   logic   [31:0]  rs2_v,
 
-    // output  logic   [4:0]   rs1_s,
-    // output  logic   [4:0]   rs2_s,
-
     output  logic   [31:0]  dmem_addr,
     output  logic   [3:0]   dmem_rmask,
     output  logic   [3:0]   dmem_wmask,
@@ -38,9 +35,6 @@ import rv32i_types::*;
 
     logic                 br_en;
     logic          [2:0]  cmpop;
-
-    // assign rs1_s = id_ex_reg.rs1_s;
-    // assign rs2_s = id_ex_reg.rs2_s;
 
     assign as =   signed'(a);
     assign bs =   signed'(b);

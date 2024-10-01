@@ -22,8 +22,6 @@ import rv32i_types::*;
     logic   [31:0]  pc;
     logic   [31:0]  pc_next;
 
-    logic   [4:0]   rs1_s;
-    logic   [4:0]   rs2_s;
     logic   [31:0]  rs1_v;
     logic   [31:0]  rs2_v;
 
@@ -162,9 +160,6 @@ import rv32i_types::*;
 
         .rs1_v(rs1_v),
         .rs2_v(rs2_v),
-
-        // .rs1_s(rs1_s),
-        // .rs2_s(rs2_s),
 
         .dmem_addr(dmem_addr),
         .dmem_rmask(dmem_rmask),

@@ -83,9 +83,9 @@ import rv32i_types::*;
             mem_wb_reg.commit = '0;
         end 
 
-        commited_order <= 'x;
+        commited_order = 'x;
         if (mem_wb_reg.commit) begin
-            commited_order <= order;
+            commited_order = order;
         end
 
         if (prev_commited_order == order) begin
