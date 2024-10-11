@@ -1,6 +1,8 @@
-module valid_array #(
-            parameter               S_INDEX     = 4,
-            parameter               WIDTH       = 1
+module valid_array
+import cache_types::*;
+#(
+    parameter               S_INDEX     = 4,
+    parameter               WIDTH       = 1
 )(
     input   logic                   clk0,
     input   logic                   rst0,
@@ -11,13 +13,13 @@ module valid_array #(
     output  logic   [WIDTH-1:0]     dout0
 );
 
-            localparam              NUM_SETS    = 2**S_INDEX;
+    localparam              NUM_SETS    = 2**S_INDEX;
 
-            logic                   web0_reg;
-            logic   [S_INDEX-1:0]   addr0_reg;
-            logic   [WIDTH-1:0]     din0_reg;
+    logic                   web0_reg;
+    logic   [S_INDEX-1:0]   addr0_reg;
+    logic   [WIDTH-1:0]     din0_reg;
 
-            logic   [WIDTH-1:0]     internal_array [NUM_SETS];
+    logic   [WIDTH-1:0]     internal_array [NUM_SETS];
 
     always_ff @(posedge clk0) begin
         if (rst0) begin

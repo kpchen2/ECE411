@@ -1,6 +1,8 @@
-module lru_array #(
-            parameter               S_INDEX     = 4,
-            parameter               WIDTH       = 3
+module lru_array
+import cache_types::*;
+#(
+    parameter               S_INDEX     = 4,
+    parameter               WIDTH       = 3
 )(
     input   logic                   clk0,
     input   logic                   rst0,
@@ -16,17 +18,17 @@ module lru_array #(
     output  logic   [WIDTH-1:0]     dout1
 );
 
-            localparam              NUM_SETS    = 2**S_INDEX;
+    localparam              NUM_SETS    = 2**S_INDEX;
 
-            logic                   web0_reg;
-            logic   [S_INDEX-1:0]   addr0_reg;
-            logic   [WIDTH-1:0]     din0_reg;
+    logic                   web0_reg;
+    logic   [S_INDEX-1:0]   addr0_reg;
+    logic   [WIDTH-1:0]     din0_reg;
 
-            logic                   web1_reg;
-            logic   [S_INDEX-1:0]   addr1_reg;
-            logic   [WIDTH-1:0]     din1_reg;
+    logic                   web1_reg;
+    logic   [S_INDEX-1:0]   addr1_reg;
+    logic   [WIDTH-1:0]     din1_reg;
 
-            logic   [WIDTH-1:0]     internal_array [NUM_SETS];
+    logic   [WIDTH-1:0]     internal_array [NUM_SETS];
 
     always_ff @(posedge clk0) begin
         if (rst0) begin
