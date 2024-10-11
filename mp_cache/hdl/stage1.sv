@@ -16,28 +16,64 @@ import cache_types::*;
     input   logic           dfp_resp,
 
     input   logic           halt,
-    output  logic   [3:0]   web,
+    input   logic   [2:0]   lru_read,
+    output  logic           lru_web,
+    output  logic           web[4],
+    output  logic   [255:0] data_in[4],
+    output  logic   [23:0]  tag_in[4],
+    output  logic           valid_in[4],
     
-    output  stage_reg_t     stage_reg
+    input   stage_reg_t     stage_reg,
+    output  stage_reg_t     stage_reg_next
 );
 
+    logic   [1:0]   index;
+
     always_comb begin
+        if (lru_read[0]) begin
+            if (lru_read[1]) begin
+                index = 2'b11;
+            end else begin
+                index = 2'b10;
+            end
+
+        end else begin
+            if (lru_read[2]) begin
+                index = 2'b01;
+            end else begin
+                index = 2'b00;
+            end
+        end
+
+        for (int i = 0; i < 4; i++) begin
+            web[i] = '1;
+            data_in[i] = '0;
+            tag_in[i] = '0;
+            valid_in[i] = '0;
+        end
+
+        stage_reg_next.addr = '0;
+        stage_reg_next.tag = '0;
+        stage_reg_next.set = '0;
+        stage_reg_next.offset = '0;
+        stage_reg_next.rmask = '0;
+        lru_web = '1;
+        
         if (halt) begin
-            web[0] = '0;
-            web[1] = '0;
-            web[2] = '0;
-            web[3] = '0;
+            if (dfp_resp) begin
+                web[index] = '0;
+                data_in[index] = dfp_rdata;
+                tag_in[index] = stage_reg.tag;
+                valid_in[index] = '1;
+                lru_web = '0;
+            end
             
         end else begin
-            stage_reg.tag = ufp_addr[31:9];
-            stage_reg.set = ufp_addr[8:5];
-            stage_reg.offset = ufp_addr[4:0];
-            stage_reg.rmask = ufp_rmask;
-            
-            web[0] = '1;
-            web[1] = '1;
-            web[2] = '1;
-            web[3] = '1;
+            stage_reg_next.addr = ufp_addr;
+            stage_reg_next.tag = ufp_addr[31:9];
+            stage_reg_next.set = ufp_addr[8:5];
+            stage_reg_next.offset = ufp_addr[4:0];
+            stage_reg_next.rmask = ufp_rmask;
         end
     end
 
