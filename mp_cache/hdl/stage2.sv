@@ -6,6 +6,7 @@ import cache_types::*;
     input   logic   [23:0]  tag_out[4],
     input   logic   [255:0] data_out[4],
     input   logic   [2:0]   lru_read,
+    input   logic           dfp_resp_reg,
 
     output  logic   [31:0]  dfp_addr,
     output  logic           dfp_read,
@@ -44,7 +45,11 @@ import cache_types::*;
             halt = '1;
 
             dfp_addr = stage_reg.addr;
-            dfp_read = '1;
+            if (dfp_resp_reg) begin
+                dfp_read = 0;
+            end else begin
+                dfp_read = '1;
+            end
 
         end else begin
             lru_write = lru_read;

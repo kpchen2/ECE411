@@ -36,13 +36,18 @@ import cache_types::*;
     logic   [23:0]  tag_in[4], tag_out[4];
     logic           valid_in[4], valid_out[4];
 
+    logic           dfp_resp_reg;
+
     always_ff @(posedge clk) begin
         if (rst) begin
             stage_reg <= '0;
+            dfp_resp_reg <= '0;
         end else if (halt) begin
             stage_reg <= stage_reg;
+            dfp_resp_reg <= dfp_resp;
         end else begin
             stage_reg <= stage_reg_next;
+            dfp_resp_reg <= dfp_resp;
         end
     end
 
@@ -68,6 +73,7 @@ import cache_types::*;
         .tag_out(tag_out),
         .data_out(data_out),
         .lru_read(lru_read),
+        .dfp_resp_reg(dfp_resp_reg),
         .dfp_addr(dfp_addr),
         .dfp_read(dfp_read),
         .dfp_write(dfp_write),
