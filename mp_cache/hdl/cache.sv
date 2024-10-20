@@ -35,6 +35,7 @@ import cache_types::*;
     logic   [255:0] data_in[4], data_out[4];
     logic   [23:0]  tag_in[4], tag_out[4];
     logic           valid_in[4], valid_out[4];
+    // logic   [31:0]  data_wmask[4];
 
     logic           dfp_resp_reg;
 
@@ -68,6 +69,7 @@ import cache_types::*;
     );
 
     stage_2 stage_2_i (
+        .rst(rst),
         .stage_reg(stage_reg),
         .valid_out(valid_out),
         .tag_out(tag_out),
@@ -88,8 +90,8 @@ import cache_types::*;
             .clk0       (clk),
             .csb0       ('0),
             .web0       (web_in[i]),
-            .wmask0     ('0),
-            .addr0      (stage_reg_next.set),
+            .wmask0     (32'hffff),
+            .addr0      (halt ? stage_reg.set : stage_reg_next.set),
             .din0       (data_in[i]),
             .dout0      (data_out[i])
         );
@@ -97,7 +99,7 @@ import cache_types::*;
             .clk0       (clk),
             .csb0       ('0),
             .web0       (web_in[i]),
-            .addr0      (stage_reg_next.set),
+            .addr0      (halt ? stage_reg.set : stage_reg_next.set),
             .din0       (tag_in[i]),
             .dout0      (tag_out[i])
         );
@@ -106,7 +108,7 @@ import cache_types::*;
             .rst0       (rst),
             .csb0       ('0),
             .web0       (web_in[i]),
-            .addr0      (stage_reg_next.set),
+            .addr0      (halt ? stage_reg.set : stage_reg_next.set),
             .din0       (valid_in[i]),
             .dout0      (valid_out[i])
         );
