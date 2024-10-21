@@ -43,9 +43,9 @@ import cache_types::*;
         if (rst) begin
             stage_reg <= '0;
             dfp_resp_reg <= '0;
-        end else if (halt) begin
-            stage_reg <= stage_reg;
-            dfp_resp_reg <= dfp_resp;
+        // end else if (halt) begin
+        //     stage_reg <= stage_reg;
+        //     dfp_resp_reg <= dfp_resp;
         end else begin
             stage_reg <= stage_reg_next;
             dfp_resp_reg <= dfp_resp;
@@ -119,12 +119,12 @@ import cache_types::*;
         .rst0       (rst),
         .csb0       ('0),
         .web0       ('1),
-        .addr0      (stage_reg_next.set),
+        .addr0      (halt ? stage_reg.set : stage_reg_next.set),
         .din0       ('0),
         .dout0      (lru_read),
         .csb1       ('0),
         .web1       (lru_web),
-        .addr1      (stage_reg_next.set),
+        .addr1      (halt ? stage_reg.set : stage_reg_next.set),
         .din1       (lru_write),
         .dout1      (dummy)
     );

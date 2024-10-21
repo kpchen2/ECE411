@@ -32,41 +32,33 @@ import cache_types::*;
             lru_write = '0;
             halt = '0;
 
+// hi
         end else begin
-            cache_hit = '0;
+            dfp_addr = stage_reg.addr;
+            dfp_read = '0;
+            dfp_write = '0;
             ufp_rdata = '0;
+            lru_write = '0;
+            halt = '0;
+
+            cache_hit = '0;
             rmask_ext = { {8{stage_reg.rmask[3]}}, {8{stage_reg.rmask[2]}}, {8{stage_reg.rmask[1]}}, {8{stage_reg.rmask[0]}} };
 
             for (int i = 0; i < 4; i++) begin
                 if (valid_out[i]) begin
                     if (tag_out[i] == stage_reg.tag) begin
                         cache_hit = '1;
-                        halt = '0;
                         ufp_rdata = data_out[i][stage_reg.offset*8 +: 32] & rmask_ext;
                     end
                 end
             end
 
-            if (dfp_resp_reg) begin
-                dfp_read = '0;
-            end
-
-            if (!halt && stage_reg.rmask != 0) begin
-                dfp_addr = '0;
-                // dfp_read = '0;
-                dfp_write = '0;
-                lru_write = '0;
+            if (stage_reg.rmask != 0) begin
+                // dfp_write = '0;
 
                 if (!cache_hit) begin
                     halt = '1;
-                    dfp_read = '1;
-                    dfp_addr = stage_reg.addr;
-
-                    // if (dfp_resp_reg) begin
-                    //     dfp_read = '0;
-                    // end else begin
-                    //     dfp_read = '1;
-                    // end
+                    dfp_read = dfp_resp_reg ? '0 : '1;
 
                 end else begin
                     lru_write = lru_read;
@@ -87,9 +79,9 @@ import cache_types::*;
                         end
                     end
                 end
-
-                ufp_resp = cache_hit;
             end
+
+            ufp_resp = cache_hit;
         end
     end
 
