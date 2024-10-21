@@ -16,6 +16,7 @@ import cache_types::*;
     output  logic           ufp_resp,
     output  logic   [31:0]  ufp_rdata,
     output  logic   [2:0]   lru_write,
+    output  logic           lru_web,
     output  logic           halt
 );
 
@@ -30,15 +31,16 @@ import cache_types::*;
             ufp_resp = '0;
             ufp_rdata = '0;
             lru_write = '0;
+            lru_web = '1;
             halt = '0;
 
-// hi
         end else begin
             dfp_addr = stage_reg.addr;
             dfp_read = '0;
             dfp_write = '0;
             ufp_rdata = '0;
             lru_write = '0;
+            lru_web = '1;
             halt = '0;
 
             cache_hit = '0;
@@ -62,20 +64,21 @@ import cache_types::*;
 
                 end else begin
                     lru_write = lru_read;
+                    lru_web = '0;
 
-                    if (lru_read[2]) begin
-                        lru_write[2] = '0;
+                    if (lru_read[0]) begin
+                        lru_write[0] = '0;
                         if (lru_read[1]) begin
                             lru_write[1] = '0;
                         end else begin
                             lru_write[1] = '1;
                         end
                     end else begin
-                        lru_write[2] = '1;
-                        if (lru_read[0]) begin
-                            lru_write[0] = '0;
+                        lru_write[0] = '1;
+                        if (lru_read[2]) begin
+                            lru_write[2] = '0;
                         end else begin
-                            lru_write[0] = '1;
+                            lru_write[2] = '1;
                         end
                     end
                 end

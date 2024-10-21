@@ -1,6 +1,7 @@
 module stage_1
 import cache_types::*;
 (
+    input   logic           rst,
     input   logic   [31:0]  ufp_addr,
     input   logic   [3:0]   ufp_rmask,
     // input   logic   [3:0]   ufp_wmask,
@@ -17,7 +18,7 @@ import cache_types::*;
 
     input   logic           halt,
     input   logic   [2:0]   lru_read,
-    output  logic           lru_web,
+    // output  logic           lru_web,
     output  logic           web[4],
     output  logic   [255:0] data_in[4],
     output  logic   [23:0]  tag_in[4],
@@ -30,49 +31,60 @@ import cache_types::*;
     logic   [1:0]   index;
 
     always_comb begin
-        if (lru_read[0]) begin
-            if (lru_read[1]) begin
-                index = 2'b11;
-            end else begin
-                index = 2'b10;
-            end
-        end else begin
-            if (lru_read[2]) begin
-                index = 2'b01;
-            end else begin
-                index = 2'b00;
-            end
-        end
-
         for (int i = 0; i < 4; i++) begin
             web[i] = '1;
             data_in[i] = '0;
             tag_in[i] = '0;
             valid_in[i] = '0;
         end
-        lru_web = '1;
 
-        stage_reg_next.addr = stage_reg.addr;
-        stage_reg_next.tag = stage_reg.tag;
-        stage_reg_next.set = stage_reg.set;
-        stage_reg_next.offset = stage_reg.offset;
-        stage_reg_next.rmask = stage_reg.rmask;
-        
-        if (halt) begin
-            if (dfp_resp) begin
-                web[index] = '0;
-                data_in[index] = dfp_rdata;
-                tag_in[index] = stage_reg.tag;
-                valid_in[index] = '1;
-                lru_web = '0;
-            end
-            
+        if (rst) begin
+            stage_reg_next = '0;
+
         end else begin
-            stage_reg_next.addr = ufp_addr;
-            stage_reg_next.tag = ufp_addr[31:9];
-            stage_reg_next.set = ufp_addr[8:5];
-            stage_reg_next.offset = ufp_addr[4:0];
-            stage_reg_next.rmask = ufp_rmask;
+            if (lru_read[0]) begin
+                if (lru_read[1]) begin
+                    index = 2'b00;
+                end else begin
+                    index = 2'b01;
+                end
+            end else begin
+                if (lru_read[2]) begin
+                    index = 2'b10;
+                end else begin
+                    index = 2'b11;
+                end
+            end
+
+            // for (int i = 0; i < 4; i++) begin
+            //     web[i] = '1;
+            //     data_in[i] = '0;
+            //     tag_in[i] = '0;
+            //     valid_in[i] = '0;
+            // end
+
+            stage_reg_next.addr = stage_reg.addr;
+            stage_reg_next.tag = stage_reg.tag;
+            stage_reg_next.set = stage_reg.set;
+            stage_reg_next.offset = stage_reg.offset;
+            stage_reg_next.rmask = stage_reg.rmask;
+            
+            if (halt) begin
+                if (dfp_resp) begin
+                    web[index] = '0;
+                    data_in[index] = dfp_rdata;
+                    tag_in[index] = stage_reg.tag;
+                    valid_in[index] = '1;
+                    // lru_web = '0;
+                end
+                
+            end else begin
+                stage_reg_next.addr = ufp_addr;
+                stage_reg_next.tag = ufp_addr[31:9];
+                stage_reg_next.set = ufp_addr[8:5];
+                stage_reg_next.offset = ufp_addr[4:0];
+                stage_reg_next.rmask = ufp_rmask;
+            end
         end
     end
 

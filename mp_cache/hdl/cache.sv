@@ -53,13 +53,14 @@ import cache_types::*;
     end
 
     stage_1 stage_1_i (
+        .rst(rst),
         .ufp_addr(ufp_addr),
         .ufp_rmask(ufp_rmask),
         .dfp_resp(dfp_resp),
         .dfp_rdata(dfp_rdata),
         .halt(halt),
         .lru_read(lru_read),
-        .lru_web(lru_web),
+        // .lru_web(lru_web),
         .web(web_in),
         .data_in(data_in),
         .tag_in(tag_in),
@@ -82,6 +83,7 @@ import cache_types::*;
         .ufp_resp(ufp_resp),
         .ufp_rdata(ufp_rdata),
         .lru_write(lru_write),
+        .lru_web(lru_web),
         .halt(halt)
     );
 
