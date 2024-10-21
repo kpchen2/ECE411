@@ -36,7 +36,6 @@ import cache_types::*;
             end else begin
                 index = 2'b10;
             end
-
         end else begin
             if (lru_read[2]) begin
                 index = 2'b01;
@@ -51,13 +50,13 @@ import cache_types::*;
             tag_in[i] = '0;
             valid_in[i] = '0;
         end
-
-        stage_reg_next.addr = '0;
-        stage_reg_next.tag = '0;
-        stage_reg_next.set = '0;
-        stage_reg_next.offset = '0;
-        stage_reg_next.rmask = '0;
         lru_web = '1;
+
+        stage_reg_next.addr = stage_reg.addr;
+        stage_reg_next.tag = stage_reg.tag;
+        stage_reg_next.set = stage_reg.set;
+        stage_reg_next.offset = stage_reg.offset;
+        stage_reg_next.rmask = stage_reg.rmask;
         
         if (halt) begin
             if (dfp_resp) begin
