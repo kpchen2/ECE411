@@ -25,6 +25,8 @@ import cache_types::*;
     stage_reg_t     stage_reg_next;
 
     logic   [2:0]   dummy;
+    logic   [3:0]   dummy_ufp_wmask;
+    logic   [31:0]  dummy_ufp_wdata;
     logic           halt;
 
     logic   [2:0]   lru_read;
@@ -40,6 +42,10 @@ import cache_types::*;
     logic           dfp_resp_reg;
 
     always_ff @(posedge clk) begin
+        dummy_ufp_wmask <= ufp_wmask;
+        dummy_ufp_wdata <= ufp_wdata;
+        dfp_wdata <= '0;
+
         if (rst) begin
             stage_reg <= '0;
             dfp_resp_reg <= '0;
