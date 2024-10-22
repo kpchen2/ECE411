@@ -49,7 +49,7 @@ import cache_types::*;
 
             for (int i = 0; i < 4; i++) begin
                 if (valid_out[i]) begin
-                    if (tag_out[i] == stage_reg.tag) begin
+                    if (tag_out[i] == stage_reg.tag && stage_reg.rmask != 0) begin
                         cache_hit = '1;
                         ufp_rdata = data_out[i][stage_reg.offset*8 +: 32] & rmask_ext;
                     end

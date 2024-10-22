@@ -79,11 +79,15 @@ import cache_types::*;
                 end
                 
             end else begin
-                stage_reg_next.addr = ufp_addr;
-                stage_reg_next.tag = ufp_addr[31:9];
-                stage_reg_next.set = ufp_addr[8:5];
-                stage_reg_next.offset = ufp_addr[4:0];
-                stage_reg_next.rmask = ufp_rmask;
+                if (ufp_rmask == 0) begin
+                    stage_reg_next = '0;
+                end else begin
+                    stage_reg_next.addr = ufp_addr;
+                    stage_reg_next.tag = ufp_addr[31:9];
+                    stage_reg_next.set = ufp_addr[8:5];
+                    stage_reg_next.offset = ufp_addr[4:0];
+                    stage_reg_next.rmask = ufp_rmask;
+                end
             end
         end
     end
