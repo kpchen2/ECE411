@@ -127,12 +127,12 @@ import cache_types::*;
         .rst0       (rst),
         .csb0       ('0),
         .web0       ('1),
-        .addr0      (halt ? stage_reg.set : stage_reg_next.set),
+        .addr0      (stage_reg_next.set),
         .din0       ('0),
         .dout0      (lru_read),
         .csb1       ('0),
         .web1       (lru_web),
-        .addr1      (halt ? stage_reg.set : stage_reg_next.set),
+        .addr1      (stage_reg.set),
         .din1       (lru_write),
         .dout1      (dummy)
     );

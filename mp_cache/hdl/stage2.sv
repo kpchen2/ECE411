@@ -22,6 +22,7 @@ import cache_types::*;
 
     logic           cache_hit;
     logic   [31:0]  rmask_ext;
+    logic   [2:0]   way;
 
     always_comb begin
         if (rst) begin
@@ -46,12 +47,27 @@ import cache_types::*;
 
             cache_hit = '0;
             rmask_ext = { {8{stage_reg.rmask[3]}}, {8{stage_reg.rmask[2]}}, {8{stage_reg.rmask[1]}}, {8{stage_reg.rmask[0]}} };
+            way = lru_read;
 
             for (int i = 0; i < 4; i++) begin
                 if (valid_out[i]) begin
                     if (tag_out[i] == stage_reg.tag && stage_reg.rmask != 0) begin
                         cache_hit = '1;
                         ufp_rdata = data_out[i][stage_reg.offset*8 +: 32] & rmask_ext;
+
+                        if (i == 0) begin
+                            way[0] = '0;
+                            way[1] = '0;
+                        end else if (i == 1) begin
+                            way[0] = '0;
+                            way[1] = '1;
+                        end else if (i == 2) begin
+                            way[0] = '1;
+                            way[2] = '0;
+                        end else begin
+                            way[0] = '1;
+                            way[2] = '1;
+                        end
                     end
                 end
             end
@@ -64,24 +80,24 @@ import cache_types::*;
                     dfp_read = dfp_resp_reg ? '0 : '1;
 
                 end else begin
-                    lru_write = lru_read;
+                    lru_write = way;
                     lru_web = '0;
 
-                    if (lru_read[0]) begin
-                        lru_write[0] = '0;
-                        if (lru_read[1]) begin
-                            lru_write[1] = '0;
-                        end else begin
-                            lru_write[1] = '1;
-                        end
-                    end else begin
-                        lru_write[0] = '1;
-                        if (lru_read[2]) begin
-                            lru_write[2] = '0;
-                        end else begin
-                            lru_write[2] = '1;
-                        end
-                    end
+                    // if (way[0]) begin
+                    //     lru_write[0] = '0;
+                    //     if (way[1]) begin
+                    //         lru_write[1] = '0;
+                    //     end else begin
+                    //         lru_write[1] = '1;
+                    //     end
+                    // end else begin
+                    //     lru_write[0] = '1;
+                    //     if (way[2]) begin
+                    //         lru_write[2] = '0;
+                    //     end else begin
+                    //         lru_write[2] = '1;
+                    //     end
+                    // end
                 end
             end
 
