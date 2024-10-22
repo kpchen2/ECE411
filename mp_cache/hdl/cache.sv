@@ -98,7 +98,7 @@ import cache_types::*;
             .clk0       (clk),
             .csb0       ('0),
             .web0       (web_in[i]),
-            .wmask0     (32'hffff),
+            .wmask0     ('1),
             .addr0      (halt ? stage_reg.set : stage_reg_next.set),
             .din0       (data_in[i]),
             .dout0      (data_out[i])

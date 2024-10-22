@@ -36,6 +36,7 @@ import cache_types::*;
 
         end else begin
             dfp_addr = stage_reg.addr;
+            dfp_addr[4:0] = 5'b00000;
             dfp_read = '0;
             dfp_write = '0;
             ufp_rdata = '0;
