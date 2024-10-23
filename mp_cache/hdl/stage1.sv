@@ -86,8 +86,8 @@ import cache_types::*;
             end else begin
                 if (write_done_reg == 1) begin
                     // stall for one cycle
-                end else if (ufp_rmask == 0 && ufp_wmask == 0 && stage_reg.wmask == 0) begin
-                    stage_reg_next = '0;
+                // end else if (ufp_rmask == 0 && ufp_wmask == 0 && stage_reg.wmask == 0) begin
+                //     stage_reg_next = '0;
                 end else begin
                     stage_reg_next.addr = ufp_addr;
                     stage_reg_next.tag = ufp_addr[31:9];
