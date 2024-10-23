@@ -84,7 +84,7 @@ import cache_types::*;
                 end
                 
             end else begin
-                if (write_done_reg == 1) begin
+                if (write_done_reg == 1 && (stage_reg.rmask != 0 || stage_reg.wmask != 0)) begin
                     // stall for one cycle
                 // end else if (ufp_rmask == 0 && ufp_wmask == 0 && stage_reg.wmask == 0) begin
                 //     stage_reg_next = '0;
