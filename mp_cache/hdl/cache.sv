@@ -25,9 +25,11 @@ import cache_types::*;
     stage_reg_t     stage_reg_next;
 
     logic   [2:0]   dummy;
-    logic   [3:0]   dummy_ufp_wmask;
-    logic   [31:0]  dummy_ufp_wdata;
-    logic           halt;
+    logic           read_halt;
+    logic           write_halt;
+
+    logic   [1:0]   write_way;
+    logic           write_done;
 
     logic   [2:0]   lru_read;
     logic           lru_web;
@@ -37,24 +39,26 @@ import cache_types::*;
     logic   [255:0] data_in[4], data_out[4];
     logic   [23:0]  tag_in[4], tag_out[4];
     logic           valid_in[4], valid_out[4];
-    // logic   [31:0]  data_wmask[4];
+    logic   [3:0]   array_addr[4];
+    logic   [31:0]  data_array_wmask;
 
     logic           dfp_resp_reg;
+    logic           write_done_reg;
 
     always_ff @(posedge clk) begin
-        dummy_ufp_wmask <= ufp_wmask;
-        dummy_ufp_wdata <= ufp_wdata;
         dfp_wdata <= '0;
 
         if (rst) begin
             stage_reg <= '0;
             dfp_resp_reg <= '0;
-        // end else if (halt) begin
+            write_done_reg <= '0;
+        // end else if (read_halt) begin
         //     stage_reg <= stage_reg;
         //     dfp_resp_reg <= dfp_resp;
         end else begin
             stage_reg <= stage_reg_next;
             dfp_resp_reg <= dfp_resp;
+            write_done_reg <= write_done;
         end
     end
 
@@ -62,17 +66,23 @@ import cache_types::*;
         .rst(rst),
         .ufp_addr(ufp_addr),
         .ufp_rmask(ufp_rmask),
+        .ufp_wmask(ufp_wmask),
+        .ufp_wdata(ufp_wdata),
         .dfp_resp(dfp_resp),
         .dfp_rdata(dfp_rdata),
-        .halt(halt),
+        .read_halt(read_halt),
         .lru_read(lru_read),
-        // .lru_web(lru_web),
         .web(web_in),
         .data_in(data_in),
         .tag_in(tag_in),
         .valid_in(valid_in),
         .stage_reg(stage_reg),
-        .stage_reg_next(stage_reg_next)
+        .stage_reg_next(stage_reg_next),
+        .write_way(write_way),
+        .write_done(write_done),
+        .write_done_reg(write_done_reg),
+        .write_halt(write_halt),
+        .data_array_wmask(data_array_wmask)
     );
 
     stage_2 stage_2_i (
@@ -90,7 +100,10 @@ import cache_types::*;
         .ufp_rdata(ufp_rdata),
         .lru_write(lru_write),
         .lru_web(lru_web),
-        .halt(halt)
+        .read_halt(read_halt),
+        .write_way(write_way),
+        .write_halt(write_halt),
+        .write_done_reg(write_done_reg)
     );
 
     generate for (genvar i = 0; i < 4; i++) begin : arrays
@@ -98,8 +111,8 @@ import cache_types::*;
             .clk0       (clk),
             .csb0       ('0),
             .web0       (web_in[i]),
-            .wmask0     ('1),
-            .addr0      (halt ? stage_reg.set : stage_reg_next.set),
+            .wmask0     (data_array_wmask),
+            .addr0      ((read_halt || write_done) ? stage_reg.set : stage_reg_next.set),
             .din0       (data_in[i]),
             .dout0      (data_out[i])
         );
@@ -107,7 +120,7 @@ import cache_types::*;
             .clk0       (clk),
             .csb0       ('0),
             .web0       (web_in[i]),
-            .addr0      (halt ? stage_reg.set : stage_reg_next.set),
+            .addr0      ((read_halt || write_done) ? stage_reg.set : stage_reg_next.set),
             .din0       (tag_in[i]),
             .dout0      (tag_out[i])
         );
@@ -116,7 +129,7 @@ import cache_types::*;
             .rst0       (rst),
             .csb0       ('0),
             .web0       (web_in[i]),
-            .addr0      (halt ? stage_reg.set : stage_reg_next.set),
+            .addr0      ((read_halt || write_done) ? stage_reg.set : stage_reg_next.set),
             .din0       (valid_in[i]),
             .dout0      (valid_out[i])
         );

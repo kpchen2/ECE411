@@ -4,9 +4,9 @@ import cache_types::*;
     input   logic           rst,
     input   logic   [31:0]  ufp_addr,
     input   logic   [3:0]   ufp_rmask,
-    // input   logic   [3:0]   ufp_wmask,
+    input   logic   [3:0]   ufp_wmask,
     // output  logic   [31:0]  ufp_rdata,
-    // input   logic   [31:0]  ufp_wdata,
+    input   logic   [31:0]  ufp_wdata,
     // output  logic           ufp_resp,
 
     // output  logic   [31:0]  dfp_addr,
@@ -16,21 +16,29 @@ import cache_types::*;
     // output  logic   [255:0] dfp_wdata,
     input   logic           dfp_resp,
 
-    input   logic           halt,
+    input   logic           read_halt,
     input   logic   [2:0]   lru_read,
-    // output  logic           lru_web,
     output  logic           web[4],
     output  logic   [255:0] data_in[4],
     output  logic   [23:0]  tag_in[4],
     output  logic           valid_in[4],
     
     input   stage_reg_t     stage_reg,
-    output  stage_reg_t     stage_reg_next
+    output  stage_reg_t     stage_reg_next,
+
+    input   logic   [1:0]   write_way,
+    output  logic           write_done,
+    input   logic           write_done_reg,
+    input   logic           write_halt,
+    output  logic   [31:0]  data_array_wmask
 );
 
     logic   [1:0]   index;
 
     always_comb begin
+        write_done = '0;
+        data_array_wmask = '1;
+        
         for (int i = 0; i < 4; i++) begin
             web[i] = '1;
             data_in[i] = '0;
@@ -55,31 +63,30 @@ import cache_types::*;
                     index = 2'b11;
                 end
             end
+            stage_reg_next = stage_reg;
 
-            // for (int i = 0; i < 4; i++) begin
-            //     web[i] = '1;
-            //     data_in[i] = '0;
-            //     tag_in[i] = '0;
-            //     valid_in[i] = '0;
-            // end
-
-            stage_reg_next.addr = stage_reg.addr;
-            stage_reg_next.tag = stage_reg.tag;
-            stage_reg_next.set = stage_reg.set;
-            stage_reg_next.offset = stage_reg.offset;
-            stage_reg_next.rmask = stage_reg.rmask;
+            if (write_halt) begin
+                web[write_way] = '0;
+                data_in[write_way][8*stage_reg.offset +: 32] = stage_reg.wdata & { {8{stage_reg.wmask[3]}}, {8{stage_reg.wmask[2]}}, {8{stage_reg.wmask[1]}}, {8{stage_reg.wmask[0]}} };
+                tag_in[write_way] = stage_reg.tag;
+                valid_in[write_way] = '1;
+                write_done = '1;
+                data_array_wmask = '0;
+                data_array_wmask[stage_reg.offset +: 4] = stage_reg.wmask;
+            end
             
-            if (halt) begin
+            if (read_halt) begin
                 if (dfp_resp) begin
                     web[index] = '0;
                     data_in[index] = dfp_rdata;
                     tag_in[index] = stage_reg.tag;
                     valid_in[index] = '1;
-                    // lru_web = '0;
                 end
                 
             end else begin
-                if (ufp_rmask == 0) begin
+                if (write_done_reg == 1) begin
+                    // stall for one cycle
+                end else if (ufp_rmask == 0 && ufp_wmask == 0 && stage_reg.wmask == 0) begin
                     stage_reg_next = '0;
                 end else begin
                     stage_reg_next.addr = ufp_addr;
@@ -87,6 +94,8 @@ import cache_types::*;
                     stage_reg_next.set = ufp_addr[8:5];
                     stage_reg_next.offset = ufp_addr[4:0];
                     stage_reg_next.rmask = ufp_rmask;
+                    stage_reg_next.wmask = ufp_wmask;
+                    stage_reg_next.wdata = ufp_wdata;
                 end
             end
         end
