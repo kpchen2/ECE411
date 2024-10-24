@@ -69,11 +69,7 @@ import cache_types::*;
             end
             stage_reg_next = stage_reg;
 
-            if (dfp_write_read && dfp_resp) begin
-                dfp_switch = '1;
-            end
-
-            if (dfp_write && dfp_resp) begin
+            if ((dfp_write_read || dfp_write) && dfp_resp) begin
                 dfp_switch = '1;
             end
 
