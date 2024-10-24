@@ -95,6 +95,7 @@ import cache_types::*;
 
                     if (valid_out[index_reg] && tag_out[index_reg][23] == 1 && !dfp_write_read) begin
                         dfp_write = dfp_switch_reg ? '0 : '1;
+                        dfp_addr[31:9] = dfp_switch_reg ? dfp_addr[31:9] : tag_out[index_reg][22:0];
                         dfp_read = dfp_switch_reg ? '1 : '0;
                         dfp_wdata = data_out[index_reg];
                         dirty_halt = '1;
