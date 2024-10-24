@@ -94,7 +94,8 @@ import cache_types::*;
         .data_array_wmask(data_array_wmask),
         .index(index),
         .dirty_halt(dirty_halt),
-        .dfp_switch(dfp_switch)
+        .dfp_switch(dfp_switch),
+        .dfp_write_read(dfp_write_read)
     );
 
     stage_2 stage_2_i (

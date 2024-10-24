@@ -33,7 +33,8 @@ import cache_types::*;
     output  logic   [31:0]  data_array_wmask,
     output  logic   [1:0]   index,
     input   logic           dirty_halt,
-    output  logic           dfp_switch
+    output  logic           dfp_switch,
+    input   logic           dfp_write_read
 );
 
     always_comb begin
@@ -67,6 +68,10 @@ import cache_types::*;
                 end
             end
             stage_reg_next = stage_reg;
+
+            if (dfp_write_read && dfp_resp) begin
+                dfp_switch = '1;
+            end
 
             if (dfp_write && dfp_resp) begin
                 dfp_switch = '1;
