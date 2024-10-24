@@ -12,6 +12,7 @@ import cache_types::*;
     output  logic   [31:0]  dfp_addr,
     output  logic           dfp_read,
     output  logic           dfp_write,
+    output  logic   [255:0] dfp_wdata,
 
     output  logic           ufp_resp,
     output  logic   [31:0]  ufp_rdata,
@@ -21,13 +22,16 @@ import cache_types::*;
 
     output  logic   [1:0]   write_way,
     output  logic           write_halt,
-    input   logic           write_done_reg
+    input   logic           write_done_reg,
+    input   logic   [1:0]   index_reg,
+    output  logic           dirty_halt,
+    input   logic           dfp_switch_reg,
+    input   logic           dfp_write_read
 );
 
     logic           cache_hit;
     logic   [31:0]  rmask_ext;
     logic   [2:0]   way;
-    logic           read;
 
     always_comb begin
         dfp_read = '0;
@@ -38,6 +42,8 @@ import cache_types::*;
         read_halt = '0;
         write_way = '0;
         write_halt = '0;
+        dirty_halt = '0;
+        dfp_wdata = '0;
 
         if (rst) begin
             dfp_addr = '0;
@@ -52,7 +58,7 @@ import cache_types::*;
             way = lru_read;
 
             for (int i = 0; i < 4; i++) begin
-                if (valid_out[i] && tag_out[i] == stage_reg.tag && !write_done_reg) begin
+                if (valid_out[i] && tag_out[i][22:0] == stage_reg.tag && !write_done_reg) begin
                     if (stage_reg.rmask != 0) begin
                         ufp_rdata = data_out[i][stage_reg.offset*8 +: 32] & rmask_ext;
                         cache_hit = '1;
@@ -86,7 +92,17 @@ import cache_types::*;
             if ((stage_reg.rmask != 0 || stage_reg.wmask != 0) && !write_done_reg) begin
                 if (!cache_hit) begin
                     read_halt = '1;
-                    dfp_read = dfp_resp_reg ? '0 : '1;
+
+                    if (valid_out[index_reg] && tag_out[index_reg][23] == 1 && !dfp_write_read) begin
+                        dfp_write = dfp_switch_reg ? '0 : '1;
+                        dfp_read = dfp_switch_reg ? '1 : '0;
+                        dfp_wdata = data_out[index_reg];
+                        dirty_halt = '1;
+                        
+                    end else begin
+                        dfp_read = dfp_resp_reg ? '0 : '1;
+                    end
+
                 end else begin
                     lru_write = way;
                     lru_web = '0;

@@ -11,7 +11,7 @@ import cache_types::*;
 
     // output  logic   [31:0]  dfp_addr,
     // output  logic           dfp_read,
-    // output  logic           dfp_write,
+    input   logic           dfp_write,
     input   logic   [255:0] dfp_rdata,
     // output  logic   [255:0] dfp_wdata,
     input   logic           dfp_resp,
@@ -30,14 +30,16 @@ import cache_types::*;
     output  logic           write_done,
     input   logic           write_done_reg,
     input   logic           write_halt,
-    output  logic   [31:0]  data_array_wmask
+    output  logic   [31:0]  data_array_wmask,
+    output  logic   [1:0]   index,
+    input   logic           dirty_halt,
+    output  logic           dfp_switch
 );
-
-    logic   [1:0]   index;
 
     always_comb begin
         write_done = '0;
         data_array_wmask = '1;
+        dfp_switch = '0;
         
         for (int i = 0; i < 4; i++) begin
             web[i] = '1;
@@ -48,6 +50,7 @@ import cache_types::*;
 
         if (rst) begin
             stage_reg_next = '0;
+            index = 2'b00;
 
         end else begin
             if (lru_read[0]) begin
@@ -65,10 +68,14 @@ import cache_types::*;
             end
             stage_reg_next = stage_reg;
 
+            if (dfp_write && dfp_resp) begin
+                dfp_switch = '1;
+            end
+
             if (write_halt) begin
                 web[write_way] = '0;
                 data_in[write_way][8*stage_reg.offset +: 32] = stage_reg.wdata & { {8{stage_reg.wmask[3]}}, {8{stage_reg.wmask[2]}}, {8{stage_reg.wmask[1]}}, {8{stage_reg.wmask[0]}} };
-                tag_in[write_way] = stage_reg.tag;
+                tag_in[write_way] = {1'b1, stage_reg.tag};
                 valid_in[write_way] = '1;
                 write_done = '1;
                 data_array_wmask = '0;
@@ -76,18 +83,16 @@ import cache_types::*;
             end
             
             if (read_halt) begin
-                if (dfp_resp) begin
+                if (dfp_resp && !dirty_halt) begin
                     web[index] = '0;
                     data_in[index] = dfp_rdata;
-                    tag_in[index] = stage_reg.tag;
+                    tag_in[index] = {1'b0, stage_reg.tag};
                     valid_in[index] = '1;
                 end
                 
             end else begin
                 if (write_done_reg == 1 && (stage_reg.rmask != 0 || stage_reg.wmask != 0)) begin
                     // stall for one cycle
-                // end else if (ufp_rmask == 0 && ufp_wmask == 0 && stage_reg.wmask == 0) begin
-                //     stage_reg_next = '0;
                 end else begin
                     stage_reg_next.addr = ufp_addr;
                     stage_reg_next.tag = ufp_addr[31:9];

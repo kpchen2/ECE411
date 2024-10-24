@@ -27,6 +27,7 @@ import cache_types::*;
     logic   [2:0]   dummy;
     logic           read_halt;
     logic           write_halt;
+    logic           dirty_halt;
 
     logic   [1:0]   write_way;
     logic           write_done;
@@ -44,21 +45,28 @@ import cache_types::*;
 
     logic           dfp_resp_reg;
     logic           write_done_reg;
+    logic   [1:0]   index;
+    logic   [1:0]   index_reg;
+
+    logic           dfp_switch;
+    logic           dfp_switch_reg;
+    logic           dfp_write_read;
 
     always_ff @(posedge clk) begin
-        dfp_wdata <= '0;
-
         if (rst) begin
             stage_reg <= '0;
             dfp_resp_reg <= '0;
             write_done_reg <= '0;
-        // end else if (read_halt) begin
-        //     stage_reg <= stage_reg;
-        //     dfp_resp_reg <= dfp_resp;
+            index_reg <= '0;
+            dfp_switch_reg <= '0;
+            dfp_write_read <= '0;
         end else begin
             stage_reg <= stage_reg_next;
             dfp_resp_reg <= dfp_resp;
             write_done_reg <= write_done;
+            index_reg <= index;
+            dfp_switch_reg <= dfp_switch;
+            dfp_write_read <= dfp_switch_reg ? !dfp_write_read : dfp_write_read;
         end
     end
 
@@ -69,6 +77,7 @@ import cache_types::*;
         .ufp_wmask(ufp_wmask),
         .ufp_wdata(ufp_wdata),
         .dfp_resp(dfp_resp),
+        .dfp_write(dfp_write),
         .dfp_rdata(dfp_rdata),
         .read_halt(read_halt),
         .lru_read(lru_read),
@@ -82,7 +91,10 @@ import cache_types::*;
         .write_done(write_done),
         .write_done_reg(write_done_reg),
         .write_halt(write_halt),
-        .data_array_wmask(data_array_wmask)
+        .data_array_wmask(data_array_wmask),
+        .index(index),
+        .dirty_halt(dirty_halt),
+        .dfp_switch(dfp_switch)
     );
 
     stage_2 stage_2_i (
@@ -96,6 +108,7 @@ import cache_types::*;
         .dfp_addr(dfp_addr),
         .dfp_read(dfp_read),
         .dfp_write(dfp_write),
+        .dfp_wdata(dfp_wdata),
         .ufp_resp(ufp_resp),
         .ufp_rdata(ufp_rdata),
         .lru_write(lru_write),
@@ -103,7 +116,11 @@ import cache_types::*;
         .read_halt(read_halt),
         .write_way(write_way),
         .write_halt(write_halt),
-        .write_done_reg(write_done_reg)
+        .write_done_reg(write_done_reg),
+        .index_reg(index_reg),
+        .dirty_halt(dirty_halt),
+        .dfp_switch_reg(dfp_switch_reg),
+        .dfp_write_read(dfp_write_read)
     );
 
     generate for (genvar i = 0; i < 4; i++) begin : arrays
