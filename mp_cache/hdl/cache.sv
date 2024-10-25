@@ -46,7 +46,6 @@ import cache_types::*;
     logic           dfp_resp_reg;
     logic           write_done_reg;
     logic   [1:0]   index;
-    logic   [1:0]   index_reg;
 
     logic           dfp_switch;
     logic           dfp_switch_reg;
@@ -57,14 +56,12 @@ import cache_types::*;
             stage_reg <= '0;
             dfp_resp_reg <= '0;
             write_done_reg <= '0;
-            index_reg <= '0;
             dfp_switch_reg <= '0;
             dfp_write_read <= '0;
         end else begin
             stage_reg <= stage_reg_next;
             dfp_resp_reg <= dfp_resp;
             write_done_reg <= write_done;
-            index_reg <= index;
             dfp_switch_reg <= dfp_switch;
             dfp_write_read <= dfp_switch_reg ? !dfp_write_read : dfp_write_read;
         end
@@ -118,7 +115,7 @@ import cache_types::*;
         .write_way(write_way),
         .write_halt(write_halt),
         .write_done_reg(write_done_reg),
-        .index_reg(index_reg),
+        .index(index),
         .dirty_halt(dirty_halt),
         .dfp_switch_reg(dfp_switch_reg),
         .dfp_write_read(dfp_write_read)

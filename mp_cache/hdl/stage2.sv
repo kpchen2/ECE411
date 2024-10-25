@@ -23,7 +23,7 @@ import cache_types::*;
     output  logic   [1:0]   write_way,
     output  logic           write_halt,
     input   logic           write_done_reg,
-    input   logic   [1:0]   index_reg,
+    input   logic   [1:0]   index,
     output  logic           dirty_halt,
     input   logic           dfp_switch_reg,
     input   logic           dfp_write_read
@@ -93,11 +93,11 @@ import cache_types::*;
                 if (!cache_hit) begin
                     read_halt = '1;
 
-                    if (valid_out[index_reg] && tag_out[index_reg][23] == 1 && !dfp_write_read) begin
+                    if (valid_out[index] && tag_out[index][23] == 1 && !dfp_write_read) begin
                         dfp_write = dfp_switch_reg ? '0 : '1;
-                        dfp_addr[31:9] = dfp_switch_reg ? dfp_addr[31:9] : tag_out[index_reg][22:0];
+                        dfp_addr[31:9] = dfp_switch_reg ? dfp_addr[31:9] : tag_out[index][22:0];
                         dfp_read = dfp_switch_reg ? '1 : '0;
-                        dfp_wdata = data_out[index_reg];
+                        dfp_wdata = data_out[index];
                         dirty_halt = '1;
                         
                     end else begin
